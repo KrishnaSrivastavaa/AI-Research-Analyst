@@ -140,7 +140,7 @@ class ConversationDoc(Base):
     document_id: Mapped[int] = mapped_column(ForeignKey("docs.id"))
 
     conversation: Mapped["Conversation"] = relationship(back_populates="conversation_documents")
-    document: Mapped["Doc"] = relationship(back_populates="conversation_documents")
+    doc: Mapped["Doc"] = relationship(back_populates="conversation_documents")
 
 
 class Message(Base):
