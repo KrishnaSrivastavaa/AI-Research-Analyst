@@ -96,14 +96,14 @@ async def upload_file(
             total_chunks=0,
             processed_chunks=0,
             error_message=None,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(),
             completed_at=None
         )
 
         db.add(ingestion_job)
         await db.flush()
 
-        chunks = await process_pdf(contents, doc.id)
+        chunks = await process_pdf(contents, doc.id, db)
 
         ingestion_job.total_chunks = len(chunks)
 
@@ -112,14 +112,14 @@ async def upload_file(
         doc.status= "ready"
         ingestion_job.status = "completed"
         ingestion_job.processed_chunks = len(chunks)
-        ingestion_job.completed_at = datetime.now(timezone.utc)
+        ingestion_job.completed_at = datetime.now()
 
         await db.commit() 
     except Exception as e:
         doc.status = "failed"
         ingestion_job.status = "failed"
         ingestion_job.error_message = str(e)
-        ingestion_job.completed_at = datetime.now(timezone.utc)
+        ingestion_job.completed_at = datetime.now()
         await db.commit()
         raise
 

@@ -1,6 +1,6 @@
 from typing import List
 from fastembed import TextEmbedding, SparseTextEmbedding
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, SparseVector
 from app.core.qdrant_client import qdrant_client
 from app.core.configs import settings
 
@@ -25,7 +25,10 @@ async def store_embeddings(chunks: List, owner_id):
                 id=chunk.id,
                 vector={
                     "dense": dense_vector,
-                    "sparse": sparse_vector,
+                    "sparse": SparseVector(
+                        indices=sparse_vector.indices.tolist(),
+                        values=sparse_vector.values.tolist(),
+                    ),
                 },
                 payload={
                     "chunk_id": chunk.id,
@@ -39,7 +42,7 @@ async def store_embeddings(chunks: List, owner_id):
             )
         )
 
-    await qdrant_client.upsert(
+    qdrant_client.upsert(
         collection_name=settings.collection_name,
         points=points
     )

@@ -1,12 +1,14 @@
 from typing import List
 
+from fastapi import Depends
 import pymupdf
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from fastembed import TextEmbedding
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.models import Chunk
+from app.core.database import get_db
 
-from backend.app.models.models import Chunk
-
-async def process_pdf(content: bytes, doc_id: int):
+async def process_pdf(content: bytes, doc_id: int, db: AsyncSession):
     doc = pymupdf.open(
         stream=content,
         filetype="pdf"
@@ -25,7 +27,7 @@ async def process_pdf(content: bytes, doc_id: int):
 
     for page_number, page in enumerate(doc, start=1):
         text = page.get_text()
-
+        text = text.replace("\x00", "")
         page_chunks = text_splitter.split_text(text)
 
         for chunk in page_chunks:
@@ -44,7 +46,8 @@ async def process_pdf(content: bytes, doc_id: int):
 
             chunks.append(chunk)
 
-    
+    db.add_all(chunks)
+    await db.flush()
 
     return chunks  
 
