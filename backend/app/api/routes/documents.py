@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from app.models.models import IngestionJob
 
 from app.services.document_service import process_pdf
-from app.services.ingestion_service import store_embeddings
+from app.services.ingestion_service import store_embeddings, delete_document_vectors
 
 import hashlib
 import fitz
@@ -116,6 +116,10 @@ async def upload_file(
 
         await db.commit() 
     except Exception as e:
+        await db.rollback()
+
+        delete_document_vectors(doc.id)
+
         doc.status = "failed"
         ingestion_job.status = "failed"
         ingestion_job.error_message = str(e)

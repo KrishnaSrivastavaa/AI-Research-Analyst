@@ -19,4 +19,5 @@ dependencies = [
     "qdrant-client>=1.19.1",
     "langchain-text-splitters>=1.1.2",
     "fastembed>=0.8.1",
+    "openai>=3.19.2",
 ]

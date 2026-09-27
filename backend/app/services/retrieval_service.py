@@ -54,4 +54,15 @@ async def retrieve_documents(query: str, owner_id: str, document_ids: list[int])
                     limit=10,
                     with_payload=True,
                 )
-    
+    retrieved_chunks = [
+    {
+        "chunk_id": point.payload["chunk_id"],
+        "document_id": point.payload["document_id"],
+        "page_start": point.payload["page_start"],
+        "page_end": point.payload["page_end"],
+        "text": point.payload["text"],
+        "score": point.score,
+    }
+    for point in results.points
+    ]
+    return retrieved_chunks
