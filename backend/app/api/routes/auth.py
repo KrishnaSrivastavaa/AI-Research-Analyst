@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.authSchema import Signin_Schema, SignUp_Schema
+from app.schemas.authSchema import Signin_Schema, SignUp_Schema, RefreshTokenRequest
 from supabase import create_client
 from app.core.configs import settings
 
@@ -62,3 +62,21 @@ async def signin(user: Signin_Schema):
             status_code=401,
             detail=str(e)
         )
+
+
+@router.post("/refresh")
+async def refresh_token(request: RefreshTokenRequest):
+    response = supabase.auth.refresh_session(
+        request.refresh_token
+    )
+
+    if response.session is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired refresh token"
+        )
+
+    return {
+        "access_token": response.session.access_token,
+        "refresh_token": response.session.refresh_token,
+    }

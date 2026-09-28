@@ -14,3 +14,6 @@ class SignUp_Schema(BaseModel):
 class Signin_Schema(BaseModel):
     email: EmailStr 
     password: str 
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 
+from sqlalchemy import select
+
 from app.models.models import Doc
 from datetime import datetime, timezone
 
@@ -23,19 +25,21 @@ supabase = create_client(settings.supabase_url, settings.supabase_key)
 router = APIRouter()
 
 
-@router.post("/documents")
+@router.get("/documents")
 async def get_documents(
-    file: UploadFile = File(...),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    return {
-        "message" : "Authentication successful",
-        "user": current_user["user_metadata"]["name"],
-        "file" : file
-    }
+    
+    results = await db.scalars(
+        select(Doc)
+        .where(Doc.owner_id == current_user["sub"])
+    )
+
+    return results.all()
 
 
-@router.post("/upload")
+@router.post("/documents")
 async def upload_file(
     db: AsyncSession = Depends(get_db),
     file: UploadFile = File(...),
@@ -115,6 +119,15 @@ async def upload_file(
         ingestion_job.completed_at = datetime.now()
 
         await db.commit() 
+
+        return {
+            "message": "Document uploaded successfully",
+            "document": {
+                "id" : doc.id,
+                "doc_name" : doc.doc_name,
+                "status" : doc.status
+            }
+        }
     except Exception as e:
         await db.rollback()
 

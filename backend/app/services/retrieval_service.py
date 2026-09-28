@@ -14,7 +14,12 @@ async def retrieve_documents(query: str, owner_id: str, document_ids: list[int])
         model_name="Qdrant/bm25"
     )
     dense_query_vector = next(dense_model.embed([query]))
-    sparse_query_vector = next(sparse_model.embed([query]))
+    sparse_embedding = next(sparse_model.embed([query]))
+
+    sparse_query_vector = models.SparseVector(
+    indices=sparse_embedding.indices.tolist(),
+    values=sparse_embedding.values.tolist(),
+    )
 
     results =  qdrant_client.query_points(
                     collection_name = settings.collection_name,

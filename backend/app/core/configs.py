@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     qdrant_api_key: str
     qdrant_url: str
     collection_name: str
+    openai_api_key: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

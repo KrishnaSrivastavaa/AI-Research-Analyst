@@ -5,13 +5,30 @@ from app.models.models import Conversation, Doc, ConversationDoc, Message
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.schemas.docSchema import ConversationDocumentResponse
 from app.schemas.chatSchema import CreateConversationRequest, MessageRequest, AddConversationDocRequest
 from sqlalchemy import select
 
 from app.services.retrieval_service import retrieve_documents
-from app.services.chat_service import get_chat_response
+from app.services.chat_service import send_message
 
 router = APIRouter()
+
+
+@router.get("/conversations")
+async def get_conversations(
+      current_user = Depends(get_current_user),
+      db: AsyncSession = Depends(get_db)
+):
+      all_conversations = await db.scalars(
+            select(Conversation)
+            .where(Conversation.user_id == current_user["sub"])
+      )
+
+      return all_conversations.all()
+
+
+
 
 
 @router.post("/conversations")
@@ -23,7 +40,7 @@ async def create_conversation(
     ):
         try: 
             conversation = Conversation(
-                    user_id = current_user.id,
+                    user_id = current_user["sub"],
                     title = request.title,
             )
 
@@ -37,6 +54,42 @@ async def create_conversation(
               print ({ "message": str(e) })
               raise 
 
+@router.get(
+    "/conversations/{conversation_id}/documents",
+    response_model=list[ConversationDocumentResponse]
+)
+async def get_connected_documents(
+    conversation_id: int,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    conversation = await db.scalar(
+        select(Conversation).where(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user["sub"]
+        )
+    )
+
+    if conversation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found"
+        )
+
+    documents = await db.scalars(
+        select(Doc)
+        .join(
+            ConversationDoc,
+            ConversationDoc.document_id == Doc.id
+        )
+        .where(
+            ConversationDoc.conversation_id == conversation_id
+        )
+    )
+
+    return documents.all()
+
+
 
 @router.post("/conversations/{conversation_id}/documents")
 async def add_conversation_document(
@@ -49,7 +102,7 @@ async def add_conversation_document(
             select(Conversation)
             .where(
                   Conversation.id == conversation_id,
-                  Conversation.user_id == current_user.id
+                  Conversation.user_id == current_user["sub"]
             )
       )
 
@@ -63,7 +116,7 @@ async def add_conversation_document(
             select(Doc)
             .where(
                   Doc.id == request.document_id,
-                  Doc.owner_id == current_user.id
+                  Doc.owner_id == current_user["sub"]
             )
       )
 
@@ -85,8 +138,21 @@ async def add_conversation_document(
             "message": f"Document: {document.doc_name} connected with conversation {conversation.title}"
       }
 
+@router.get("/conversations/{conversation_id}/messages")
+async def get_messages(
+      conversation_id: int,
+      current_user = Depends(get_current_user),
+      db: AsyncSession = Depends(get_db)
+):
+      results = await db.scalars(
+            select(Message)
+            .where(Message.conversation_id == conversation_id)
 
-      
+      )
+
+      all_messages = results.all()
+
+      return all_messages
 
 @router.post("/conversations/{conversation_id}/messages")
 async def chat(
@@ -95,62 +161,12 @@ async def chat(
       db: AsyncSession = Depends(get_db),
       current_user = Depends(get_current_user)
 ):
-    conversation = await db.scalar(
-    select(Conversation).where(
-        Conversation.id == conversation_id,
-        Conversation.user_id == current_user.id
-        )
+    return await send_message(
+          db = db,
+          conversation_id = conversation_id,
+          user_id = current_user["sub"],
+          query= request.query
     )
-
-    if conversation is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Conversation not found"
-        )
-
-    document_ids = await db.scalars(
-          select(ConversationDoc.document_id)
-          .where(
-                ConversationDoc.conversation_id == conversation_id
-          )
-    ).all()
-      
-    context = await retrieve_documents(request.query, current_user.id, document_ids)
-
-    result = await db.execute(
-          select(Message.role, Message.content)
-          .where(
-                Message.conversation_id == conversation_id
-          ).order_by(Message.id.desc())
-          .limit(10)
-    )
-
-    history = result.mappings().all()
-
-    user_message = Message(
-          conversation_id= conversation_id,
-          role= "user",
-          content= request.query
-    )
-
-
-    db.add(user_message)
-
-
-    chat_response = await get_chat_response(request.query, history, context)
-
-    analyst_message = Message(
-              conversation_id= conversation_id,
-              role= "assisstant",
-              content= chat_response
-        )
-    
-    
-    db.add(analyst_message)
-
-
-
-    await db.commit()
 
 
 
