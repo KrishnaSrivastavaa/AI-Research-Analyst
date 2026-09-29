@@ -1,7 +1,7 @@
 from openai import OpenAI, AsyncOpenAI
 from typing import List
 
-from app.schemas.researchResponseSchema import ResearchResponse, EvidenceCheck
+from app.schemas.researchResponseSchema import ResearchResponse, EvidenceCheck, Citation, ChatResponse
 
 from fastapi import HTTPException
 
@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from app.services.retrieval_service import retrieve_documents
 
-from app.models.models import Conversation, Message, ConversationDoc, MessageCitation
+from app.models.models import Conversation, Message, ConversationDoc, MessageCitation, Doc
 from app.core.configs import settings
 
 async def get_chat_response(query: str, history: List[dict], context: List[dict]):
@@ -110,7 +110,7 @@ async def get_chat_response(query: str, history: List[dict], context: List[dict]
 
     context_text = "\n\n".join(
         f"""
-        SOURCE {i+1}
+        [S{i+1}]
         Document ID: {chunk["document_id"]}
         Pages: {chunk["page_start"]}-{chunk["page_end"]}
 
@@ -230,7 +230,24 @@ async def send_message(
         
     context = await retrieve_documents(query, user_id, document_ids)
 
-    
+    if context:
+        context_document_ids = {
+            chunk["document_id"]
+            for chunk in context
+        }
+
+        document_result = await db.scalars(
+            select(Doc)
+            .where(
+                Doc.id.in_(context_document_ids),
+                Doc.owner_id == user_id
+            )
+        )
+
+        documents_by_id = {
+            document.id: document
+            for document in document_result.all()
+        }
             
 
     print("\nQUERY:", query)
@@ -301,6 +318,30 @@ async def send_message(
                 context=context
             )
         
+    citations = []
+
+    for source_id in chat_response.citations:
+        chunk = source_map.get(source_id)
+
+        if chunk is None:
+            continue
+
+        document = documents_by_id.get(
+            chunk["document_id"]
+        )
+
+        if document is None:
+            continue
+
+        citations.append(
+            Citation(
+                id=source_id,
+                document_id=chunk["document_id"],
+                document_name=document.doc_name,
+                page_start=chunk["page_start"],
+                page_end=chunk["page_end"],
+            )
+        )
 
     assisstant_message = Message(
                 conversation_id= conversation_id,
@@ -325,4 +366,8 @@ async def send_message(
         db.add(message_citation)
     await db.commit()
 
-    return chat_response
+    return ChatResponse(
+        answer=chat_response.answer,
+        citations=citations,
+        grounded=chat_response.grounded,
+    )

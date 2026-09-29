@@ -3,7 +3,9 @@ import type { Conversation } from "../types";
 interface SidebarProps {
     conversations: Conversation[];
     selectedConversationId: number | null;
-    onSelectConversation: (conversation: Conversation) => void;
+    onSelectConversation: (
+        conversation: Conversation
+    ) => void;
     onNewConversation: () => void;
 }
 
@@ -40,7 +42,6 @@ export default function Sidebar({
 
                 </div>
 
-
                 <button
                     onClick={onNewConversation}
                     className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-950/20 transition hover:from-violet-500 hover:to-violet-400"
@@ -53,7 +54,6 @@ export default function Sidebar({
                 </button>
 
             </div>
-
 
             {/* Conversations */}
 
@@ -69,7 +69,9 @@ export default function Sidebar({
                         <button
                             key={conversation.id}
                             onClick={() =>
-                                onSelectConversation(conversation)
+                                onSelectConversation(
+                                    conversation
+                                )
                             }
                             className={`group w-full rounded-xl px-3 py-3 text-left text-sm transition ${
                                 selectedConversationId ===
@@ -101,9 +103,9 @@ export default function Sidebar({
 
                 </div>
 
-
                 {conversations.length === 0 && (
                     <div className="px-3 py-8 text-center">
+
                         <p className="text-xs text-slate-600">
                             No conversations yet
                         </p>
@@ -111,19 +113,22 @@ export default function Sidebar({
                         <p className="mt-1 text-[11px] text-slate-700">
                             Start a new research chat
                         </p>
+
                     </div>
                 )}
 
             </div>
-
 
             {/* Bottom */}
 
             <div className="border-t border-white/[0.06] p-4">
 
                 <div className="flex items-center gap-2 text-xs text-slate-600">
+
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
+
                     Backend connected
+
                 </div>
 
             </div>

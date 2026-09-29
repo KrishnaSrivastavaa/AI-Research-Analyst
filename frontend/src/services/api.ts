@@ -29,8 +29,11 @@ function authHeaders(): HeadersInit {
 
 
 export async function signup(
+    name: string,
     email: string,
-    password: string
+    username: string,
+    password: string,
+
 ): Promise<SignupResponse> {
     const response = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
@@ -38,7 +41,9 @@ export async function signup(
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
+            name,
             email,
+            username,
             password,
         }),
     });

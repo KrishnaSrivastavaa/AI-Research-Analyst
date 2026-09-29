@@ -103,10 +103,7 @@ export default function DocumentPanel({
             /*
              * Step 4:
              * Refresh the user's complete document
-             * library as well.
-             *
-             * This will be useful when we build
-             * the "Add existing document" modal.
+             * library.
              */
             const allDocuments =
                 await getDocuments();
@@ -123,7 +120,6 @@ export default function DocumentPanel({
         } finally {
             setUploading(false);
 
-            // Allows selecting the same file again
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
@@ -131,11 +127,11 @@ export default function DocumentPanel({
     }
 
     return (
-        <div className="border-t border-white/[0.06] p-4">
+        <div className="shrink-0 border-t border-white/[0.06] p-3">
 
             {/* Header */}
 
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between">
 
                 <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
                     Documents
@@ -150,32 +146,38 @@ export default function DocumentPanel({
 
             {/* Document list */}
 
-            <div className="mb-3 max-h-32 space-y-1 overflow-y-auto">
+            <div className="mb-3 max-h-32 overflow-y-auto">
 
-                {documents.map((document) => (
-                    <div
-                        key={document.id}
-                        className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-slate-500"
-                    >
-                        <span className="shrink-0 text-red-400">
-                            PDF
-                        </span>
+                <div className="space-y-1">
 
-                        <span className="truncate">
-                            {document.doc_name}
-                        </span>
+                    {documents.map((document) => (
+                        <div
+                            key={document.id}
+                            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-slate-500"
+                        >
 
-                        {document.status === "ready" && (
-                            <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-                        )}
-                    </div>
-                ))}
+                            <span className="shrink-0 text-[10px] text-red-400">
+                                PDF
+                            </span>
 
-                {documents.length === 0 && (
-                    <p className="px-2 py-2 text-xs text-slate-700">
-                        No documents uploaded.
-                    </p>
-                )}
+                            <span className="min-w-0 truncate">
+                                {document.doc_name}
+                            </span>
+
+                            {document.status === "ready" && (
+                                <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                            )}
+
+                        </div>
+                    ))}
+
+                    {documents.length === 0 && (
+                        <p className="px-2 py-1 text-xs text-slate-700">
+                            No documents uploaded.
+                        </p>
+                    )}
+
+                </div>
 
             </div>
 
@@ -202,7 +204,7 @@ export default function DocumentPanel({
                 onClick={() =>
                     fileInputRef.current?.click()
                 }
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/[0.1] bg-white/[0.02] px-3 py-2.5 text-xs font-medium text-slate-500 transition hover:border-violet-500/40 hover:bg-violet-500/[0.04] hover:text-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/[0.1] bg-white/[0.02] px-3 py-2 text-xs font-medium text-slate-500 transition hover:border-violet-500/40 hover:bg-violet-500/[0.04] hover:text-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 {uploading ? (
                     <>
@@ -224,7 +226,7 @@ export default function DocumentPanel({
             {/* Error */}
 
             {error && (
-                <p className="mt-2 text-[11px] leading-4 text-red-400">
+                <p className="mt-2 truncate text-[11px] leading-4 text-red-400">
                     {error}
                 </p>
             )}

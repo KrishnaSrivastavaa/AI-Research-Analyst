@@ -1,12 +1,24 @@
 from fastapi import APIRouter, Depends, File, HTTPException
 from app.dependencies.auth_dependency import get_current_user
 from app.core.database import get_db
-from app.models.models import Conversation, Doc, ConversationDoc, Message
-
+from app.models.models import (
+    Conversation,
+    Doc,
+    ConversationDoc,
+    Message,
+    MessageCitation,
+    Chunk,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.docSchema import ConversationDocumentResponse
-from app.schemas.chatSchema import CreateConversationRequest, MessageRequest, AddConversationDocRequest
+from app.schemas.chatSchema import (
+    CreateConversationRequest,
+    MessageRequest,
+    AddConversationDocRequest,
+    MessageResponse,
+)
+
 from sqlalchemy import select
 
 from app.services.retrieval_service import retrieve_documents
@@ -138,21 +150,87 @@ async def add_conversation_document(
             "message": f"Document: {document.doc_name} connected with conversation {conversation.title}"
       }
 
-@router.get("/conversations/{conversation_id}/messages")
+@router.get("/conversations/{conversation_id}/messages",
+            response_model=list[MessageResponse]
+            )
 async def get_messages(
       conversation_id: int,
       current_user = Depends(get_current_user),
       db: AsyncSession = Depends(get_db)
 ):
-      results = await db.scalars(
-            select(Message)
-            .where(Message.conversation_id == conversation_id)
-
+      conversation = await db.scalar(
+           select(Conversation).where(
+                Conversation.id == conversation_id,
+                Conversation.user_id == current_user["sub"]
+           )
       )
 
-      all_messages = results.all()
+      if conversation is None:
+           raise HTTPException(
+                status_code=404,
+                detail = "Conversation not found"
+           )
 
-      return all_messages
+      
+      messages = await db.scalars(
+            select(Message)
+            .where(Message.conversation_id == conversation_id).order_by(Message.id)
+      )
+
+      all_messages = messages.all()
+
+      response = []
+
+      for message in all_messages:
+           citations = []
+
+           if message.role == "assistant":
+                citation_rows = await db.execute(
+                     select(
+                          MessageCitation,
+                          Chunk,
+                          Doc
+                     )
+                     .join(
+                          Chunk,
+                          MessageCitation.chunk_id == Chunk.id
+                     )
+                     .join(
+                          Doc,
+                          Chunk.doc_id == Doc.id
+                     )
+                     .where(
+                          MessageCitation.message_id == message.id
+                     )
+                     .order_by(
+                          MessageCitation.citation_order
+                     )
+                )
+
+                for message_citation, chunk, document in citation_rows.all():
+                     citations.append(
+                          {
+                               "id": f"S{message_citation.citation_order}",
+                               "document_id": document.id,
+                               "document_name": document.doc_name,
+                               "page_start": chunk.page_start,
+                               "page_end": chunk.page_end,
+                              
+                          }
+                     )
+            
+           response.append(
+                        {
+                              "id": message.id,
+                              "conversation_id": message.conversation_id,
+                              "role": message.role,
+                              "content": message.content,
+                              "created_at": message.created_at,
+                              "citations": citations
+                        }
+                  )
+
+      return response
 
 @router.post("/conversations/{conversation_id}/messages")
 async def chat(

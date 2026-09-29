@@ -38,11 +38,12 @@ export interface Message {
     role: "user" | "assistant";
     content: string;
     created_at: string;
+    citations?: Citation[];
 }
 
 export interface ResearchResponse {
     answer: string;
-    citations: string[];
+    citations: Citation[];
     grounded: boolean;
 }
 
@@ -70,4 +71,12 @@ export interface ConversationDocument {
     page_count: number;
     status: string;
     created_at: string;
+}
+
+export interface Citation {
+    id: string;
+    document_id: number;
+    document_name: string;
+    page_start: number;
+    page_end: number;
 }

@@ -5,12 +5,15 @@ import type {
     Message,
 } from "../types";
 
+import Citation from "./Citation";
+
 interface ChatWindowProps {
     conversation: Conversation | null;
     messages: Message[];
     documents: Document[];
     loadingMessages: boolean;
     onSendMessage: (query: string) => Promise<void>;
+    onLogout: () => void;
 }
 
 export default function ChatWindow({
@@ -18,6 +21,7 @@ export default function ChatWindow({
     messages,
     loadingMessages,
     onSendMessage,
+    onLogout,
 }: ChatWindowProps) {
     const [query, setQuery] = useState("");
     const [sending, setSending] = useState(false);
@@ -88,13 +92,45 @@ export default function ChatWindow({
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                <div className="flex items-center gap-5">
 
-                    <span className="text-xs text-slate-500">
-                        Ready
-                    </span>
-                </div>
+    <div className="flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+
+        <span className="text-xs text-slate-500">
+            Ready
+        </span>
+    </div>
+
+    <button
+        type="button"
+        onClick={onLogout}
+        className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 transition hover:bg-red-500/[0.06] hover:text-red-400"
+    >
+        <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        className="h-4 w-4"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"
+        />
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M18 12H9m0 0 3-3m-3 3 3 3"
+        />
+    </svg>
+
+        Logout
+    </button>
+
+</div>
 
             </header>
 
@@ -169,6 +205,25 @@ export default function ChatWindow({
                                         {message.content}
                                     </div>
 
+                                    {message.role === "assistant" &&
+    message.citations &&
+    message.citations.length > 0 && (
+        <div className="mt-4 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
+                Sources
+            </p>
+
+            <div className="space-y-1.5">
+                {message.citations.map((citation) => (
+                    <Citation
+                        key={`${message.id}-${citation.id}`}
+                        citation={citation}
+                    />
+                ))}
+            </div>
+        </div>
+    )}
+
                                 </div>
                             </div>
                         ))}
@@ -214,7 +269,7 @@ export default function ChatWindow({
 
             {/* Input */}
 
-            <div className="border-t border-white/[0.06] bg-[#0B0F1A] px-4 py-4">
+            <div className="h-[96px] shrink-0 border-t border-white/[0.06] bg-[#0B0F1A] px-4 py-3">
 
                 <form
                     onSubmit={handleSubmit}
@@ -256,7 +311,7 @@ export default function ChatWindow({
 
                 </form>
 
-                <p className="mx-auto mt-2 max-w-4xl px-1 text-[11px] text-slate-600">
+                <p className="mx-auto mt-1 max-w-4xl px-1 text-[11px] text-slate-600">
                     Answers are generated from your selected research documents.
                 </p>
 

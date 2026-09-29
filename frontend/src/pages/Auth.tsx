@@ -1,13 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+
 import { signin, signup } from "../services/api";
 
 type AuthMode = "signin" | "signup";
 
 export default function Auth() {
     const navigate = useNavigate();
-    const [mode, setMode] = useState<AuthMode>("signin");
 
+    const [mode, setMode] =
+        useState<AuthMode>("signin");
+
+    const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -26,14 +31,26 @@ export default function Auth() {
 
         try {
             if (mode === "signup") {
-                const data = await signup(email, password);
+                const data = await signup(
+                    name,
+                    email,
+                    username,
+                    password
+                );
 
                 setSuccess(data.message);
 
                 setMode("signin");
+
+                // Clear signup-only fields
+                setName("");
+                setUsername("");
                 setPassword("");
             } else {
-                const data = await signin(email, password);
+                const data = await signin(
+                    email,
+                    password
+                );
 
                 localStorage.setItem(
                     "access_token",
@@ -51,8 +68,6 @@ export default function Auth() {
                 );
 
                 navigate("/research");
-
-                // We'll redirect to /research next.
             }
         } catch (error) {
             setError(
@@ -66,12 +81,14 @@ export default function Auth() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+        <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
+
             <div className="w-full max-w-md rounded-2xl bg-gray-900 p-8 shadow-xl">
 
                 {/* Header */}
 
                 <div className="mb-8 text-center">
+
                     <h1 className="text-3xl font-bold text-white">
                         AI Research Analyst
                     </h1>
@@ -79,6 +96,7 @@ export default function Auth() {
                     <p className="mt-2 text-gray-400">
                         Research your documents with AI
                     </p>
+
                 </div>
 
 
@@ -128,9 +146,72 @@ export default function Auth() {
                     className="space-y-5"
                 >
 
+                    {/* Name - Signup only */}
+
+                    {mode === "signup" && (
+                        <div>
+
+                            <label
+                                htmlFor="name"
+                                className="mb-2 block text-sm font-medium text-gray-300"
+                            >
+                                Name
+                            </label>
+
+                            <input
+                                id="name"
+                                type="text"
+                                value={name}
+                                onChange={(event) =>
+                                    setName(
+                                        event.target.value
+                                    )
+                                }
+                                required
+                                autoComplete="name"
+                                placeholder="Your name"
+                                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
+                            />
+
+                        </div>
+                    )}
+
+
+                    {/* Username - Signup only */}
+
+                    {mode === "signup" && (
+                        <div>
+
+                            <label
+                                htmlFor="username"
+                                className="mb-2 block text-sm font-medium text-gray-300"
+                            >
+                                Username
+                            </label>
+
+                            <input
+                                id="username"
+                                type="text"
+                                value={username}
+                                onChange={(event) =>
+                                    setUsername(
+                                        event.target.value
+                                    )
+                                }
+                                required
+                                autoComplete="username"
+                                placeholder="Choose a username"
+                                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
+                            />
+
+                        </div>
+                    )}
+
+
                     {/* Email */}
 
                     <div>
+
                         <label
                             htmlFor="email"
                             className="mb-2 block text-sm font-medium text-gray-300"
@@ -143,19 +224,23 @@ export default function Auth() {
                             type="email"
                             value={email}
                             onChange={(event) =>
-                                setEmail(event.target.value)
+                                setEmail(
+                                    event.target.value
+                                )
                             }
                             required
                             autoComplete="email"
                             placeholder="you@example.com"
                             className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
                         />
+
                     </div>
 
 
                     {/* Password */}
 
                     <div>
+
                         <label
                             htmlFor="password"
                             className="mb-2 block text-sm font-medium text-gray-300"
@@ -168,7 +253,9 @@ export default function Auth() {
                             type="password"
                             value={password}
                             onChange={(event) =>
-                                setPassword(event.target.value)
+                                setPassword(
+                                    event.target.value
+                                )
                             }
                             required
                             autoComplete={
@@ -179,6 +266,7 @@ export default function Auth() {
                             placeholder="••••••••"
                             className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
                         />
+
                     </div>
 
 
@@ -220,6 +308,7 @@ export default function Auth() {
                 {/* Bottom text */}
 
                 <p className="mt-6 text-center text-sm text-gray-500">
+
                     {mode === "signin"
                         ? "Don't have an account? "
                         : "Already have an account? "}
@@ -242,9 +331,11 @@ export default function Auth() {
                             ? "Create one"
                             : "Sign in"}
                     </button>
+
                 </p>
 
             </div>
+
         </div>
     );
 }
