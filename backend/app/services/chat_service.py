@@ -63,7 +63,7 @@ async def get_chat_response(
     6. If the retrieved document sources do not contain enough information
     to answer a factual question, respond exactly:
 
-    "I don't have enough information in the provided context to answer this question."
+    "The uploaded documents don't contain enough context to answer this question."
 
     CONVERSATIONAL FOLLOW-UPS:
 
@@ -113,7 +113,7 @@ async def get_chat_response(
     questions using conversation history or general knowledge.
     - Return exactly:
 
-    "I don't have enough information in the provided context to answer this question."
+    "The uploaded documents don't contain enough context to answer this question."
 
     GREETING AND CASUAL CONVERSATION:
 
@@ -363,8 +363,8 @@ async def send_message(
 
             chat_response = ResearchResponse(
                 answer=(
-                    "I don't have enough information in the "
-                    "provided context to answer this question."
+                    "The uploaded documents don't contain "
+                    "enough context to answer this question."
                 ),
                 citations=[],
                 grounded=False,
@@ -381,8 +381,8 @@ async def send_message(
 
                 chat_response = ResearchResponse(
                     answer=(
-                        "I don't have enough information in the "
-                        "provided context to answer this question."
+                        "The uploaded documents don't contain "
+                        "enough context to answer this question."
                     ),
                     citations=[],
                     grounded=False,
