@@ -7,7 +7,6 @@ import {
     uploadDocument,
     addDocumentToConversation,
     getConversationDocuments,
-    getDocuments,
 } from "../services/api";
 
 interface DocumentPanelProps {
@@ -18,16 +17,12 @@ interface DocumentPanelProps {
         documents: Document[]
     ) => void;
 
-    onAvailableDocumentsChange: (
-        documents: Document[]
-    ) => void;
 }
 
 export default function DocumentPanel({
     documents,
     conversationId,
     onDocumentsChange,
-    onAvailableDocumentsChange,
 }: DocumentPanelProps) {
     const fileInputRef =
         useRef<HTMLInputElement>(null);
@@ -128,12 +123,8 @@ export default function DocumentPanel({
              * library regardless of the currently
              * selected conversation.
              */
-            const allDocuments =
-                await getDocuments();
 
-            onAvailableDocumentsChange(
-                allDocuments
-            );
+            
         } catch (error) {
             setError(
                 error instanceof Error
