@@ -1,0 +1,482 @@
+[
+  {
+    "id": "q001",
+    "type": "direct",
+    "question": "What assumptions define the Linear Quadratic Regulation (LQR) model described in the text, and what are the two main steps of the LQR algorithm when the system parameters are initially unknown?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "The LQR model assumes that the state and action spaces are\n\n$$ S=\\mathbb{R}^d,\\qquad A=\\mathbb{R}^d, $$\n\nand that the system follows linear transitions with Gaussian noise:\n\n$$ s_{t+1}=A_ts_t+B_ta_t+w_t, $$\n\nwhere \\(w_t\\sim\\mathcal{N}(0,\\Sigma_t)\\). It also assumes quadratic rewards:\n\n$$ R^{(t)}(s_t,a_t)=-s_t^TU_ts_t-a_t^TW_ta_t, $$\n\nwhere \\(U_t\\) and \\(W_t\\) are positive definite matrices.\n\nWhen \\(A,B,\\Sigma\\) are unknown, the LQR algorithm proceeds in two steps:\n\nEstimate the unknown model parameters by collecting transitions from an arbitrary policy, using the collected data to estimate \\(A_t\\) and \\(B_t\\), and using the residuals to estimate the noise covariance \\(\\Sigma\\).\nGiven the known or estimated parameters, derive the optimal policy using dynamic programming.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 208,
+        "page_end": 209,
+        "text": "“We place ourselves in the continuous setting, where \\(S=\\mathbb{R}^d, A=\\mathbb{R}^d\\), and we’ll assume linear transitions (with noise)”\n\n$$ s_{t+1}=A_ts_t+B_ta_t+w_t $$\n\n“\\(w_t\\sim\\mathcal{N}(0,\\Sigma_t)\\) is some Gaussian noise”\n\n“We’ll also assume quadratic rewards”\n\n$$ R^{(t)}(s_t,a_t)=-s_t^TU_ts_t-a_t^TW_ta_t $$\n\n“Now that we have defined the assumptions of our LQR model, let’s cover the 2 steps of the LQR algorithm.”\n\n“step 1 suppose that we don’t know the matrices \\(A,B,\\Sigma\\). To estimate them, we can follow the ideas outlined in the Value Approximation section of the RL notes. First, collect transitions from an arbitrary policy. Then, use linear regression to estimate \\(A_t\\) and \\(B_t\\). Finally, use a technique such as Gaussian Discriminant Analysis to learn \\(\\Sigma\\).”\n\n“step 2 assuming that the parameters of our model are known (or estimated with step 1), we can derive the optimal policy using dynamic programming.”"
+      }
+    ]
+  },
+  {
+    "id": "q002",
+    "type": "direct",
+    "question": "In the linear regression housing example, how is the hypothesis hθ(x)h_\\theta(x) defined when the input has two features, and what do the parameters θ0,θ1,θ2\\theta_0,\\theta_1,\\theta_2 represent?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "For the housing example with two features—living area and number of bedrooms—the linear regression hypothesis is:\n\n$$ h_\\theta(x)=\\theta_0+\\theta_1x_1+\\theta_2x_2 $$\n\nHere, \\(\\theta_0,\\theta_1,\\theta_2\\) are the parameters (weights) that parameterize the linear function mapping the input features \\(x\\) to the predicted output \\(y\\). \\(\\theta_0\\) is the intercept term, while \\(\\theta_1\\) and \\(\\theta_2\\) are the weights associated with living area and number of bedrooms, respectively.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 8,
+        "page_end": 9,
+        "text": "“As an initial choice, let’s say we decide to approximate \\(y\\) as a linear function of \\(x\\):\n\\(h_\\theta(x)=\\theta_0+\\theta_1x_1+\\theta_2x_2\\).”\n\nAnd:\n\n“Here, the \\(\\theta_i\\)’s are the parameters (also called weights) parameterizing the space of linear functions mapping from \\(x\\) to \\(y\\).”\n\nThe text also defines \\(x_0=1\\) as the intercept term, giving the general vector form:\n\nh(x)=\ni=0\n∑\nd\n\t​\n\nθ\ni\n\t​\n\nx\ni\n\t​\n\n=θ\nT\nx"
+      }
+    ]
+  },
+  {
+    "id": "q003",
+    "type": "direct",
+    "question": "In the Naive Bayes spam-classification example, why does the standard maximum-likelihood estimate fail when a word has never appeared in either spam or non-spam training examples, and how does Laplace smoothing address this problem?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "The standard maximum-likelihood estimate can assign a probability of zero to a word if that word has never appeared in the corresponding class. In the example, the word “neurips” had not appeared in any of the training emails, so both estimated probabilities \\(p(x_j=1\\mid y=1)\\) and \\(p(x_j=1\\mid y=0)\\) become zero.\n\nBecause Naive Bayes multiplies the conditional probabilities of the observed features, a single zero probability makes the entire product zero. This can make the classifier unable to distinguish between the classes.\n\nLaplace smoothing prevents this by adding 1 to the numerator and \\(k\\) to the denominator:\n\n$$ \\phi_j=\\frac{1+\\sum_{i=1}^{n}1\\{x_j^{(i)}=1\\}} {k+n} $$\n\nFor binary features, the resulting estimates are:\n\n$$ \\phi_{j|y=1} = \\frac{1+\\sum_{i=1}^{n}1\\{x_j^{(i)}=1\\land y^{(i)}=1\\}} {2+\\sum_{i=1}^{n}1\\{y^{(i)}=1\\}} $$\n\nand\n\n$$ \\phi_{j|y=0} = \\frac{1+\\sum_{i=1}^{n}1\\{x_j^{(i)}=1\\land y^{(i)}=0\\}} {2+\\sum_{i=1}^{n}1\\{y^{(i)}=0\\}} $$\n\nThus, even an unseen word receives a small non-zero probability.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 44,
+        "page_end": 46,
+        "text": "“because it has never seen ‘neurips’ before in either spam or non-spam training examples, it thinks the probability of seeing it in either type of email is zero.”\n\n“To avoid this, we can use Laplace smoothing, which replaces the above estimate with\n\\(\\phi_j = \\frac{1+\\sum_{i=1}^{n}1\\{x_j^{(i)}=j\\}}{k+n}\\).”\n\n“Here, we’ve added 1 to the numerator, and \\(k\\) to the denominator.”"
+      }
+    ]
+  },
+  {
+    "id": "q004",
+    "type": "direct",
+    "question": "How does the general strategy of backpropagation represent a neural network computation, and what role do the intermediate variables \\(M_i\\) play in this representation?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "The general strategy represents a neural network as a composition of smaller computational modules. If the network consists of modules \\(M_1,\\ldots,M_k\\), the overall computation can be written as:\n\n$$ J = M_k(M_{k-1}(\\cdots M_2(M_1(x))\\cdots)) $$\n\nEach module \\(M_i\\) performs a specific computation and may have its own parameters \\(\\theta^i\\). The intermediate variables represent the outputs of these modules and are introduced to break the overall computation into smaller, manageable steps. This modular representation allows derivatives with respect to the parameters to be computed systematically using backpropagation.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 102,
+        "page_end": 102,
+        "text": "“We take the viewpoint that neural networks are compositions of small building blocks such as MM, σ, Conv2D, LN, etc., defined in Section 7.3.”\n\n“Thus, we can also view the loss function \\(J\\) ... as a composition of many modules.”\n\n“We introduce the intermediate variables for the computation in (7.60).”\n\nThe overall computation is represented as:\n\nJ=M\nk\n\t​\n\n(M\nk−1\n\t​\n\n(⋯M\n2\n\t​\n\n(M\n1\n\t​\n\n(x))⋯))."
+      }
+    ]
+  },
+  {
+    "id": "q005",
+    "type": "direct",
+    "question": "What is the double descent phenomenon, and how does test error change as model complexity increases beyond the point where the number of parameters is sufficient to fit the training data?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "The double descent phenomenon describes a pattern in which test error first decreases, then increases, and finally decreases again as model complexity increases.\n\nThe second decrease occurs around the interpolation threshold, where the number of parameters becomes large enough to fit the training data exactly. Beyond this threshold, in the overparameterized regime, increasing the number of parameters can cause the test error to decrease again. The text notes that larger overparameterized models can often lead to better performance, rather than causing the test error to remain high after the second descent.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 121,
+        "page_end": 122,
+        "text": "“as we increase the model complexity, the test error first decreases and then increases”\n\n“the test error has a second descent—it first decreases, then increases to a peak around when the model size is large enough to fit all the training data very well, and then decreases again in the overparameterized regime”\n\n“where the number of parameters is larger than the number of data points.”\n\n“in many cases, larger overparameterized models always lead to a better performance (meaning there won't be a second ascent after the second descent).”"
+      }
+    ]
+  },
+  {
+    "id": "q006",
+    "type": "direct",
+    "question": "What is the purpose of adding a regularization term to the training loss, and how does the regularization parameter \\(\\lambda\\) control the trade-off between fitting the training data and controlling model complexity?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "Regularization adds a penalty term to the original training loss to discourage overly complex models and help prevent overfitting. The regularized loss is defined as:\n\n$$ J_\\lambda(\\theta)=J(\\theta)+\\lambda R(\\theta) $$\n\nwhere \\(J(\\theta)\\) is the original training loss, \\(R(\\theta)\\) is the regularization term, and \\(\\lambda\\geq0\\) controls the strength of regularization.\n\nWhen \\(\\lambda=0\\), there is no regularization, so the model minimizes the original loss. As \\(\\lambda\\) increases, the regularization term becomes more important, encouraging simpler models. If \\(\\lambda\\) becomes extremely large, the regularizer can dominate the objective, potentially causing the model to have large bias.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 135,
+        "page_end": 136,
+        "text": "“Regularization typically involves adding an additional term, called a regularizer and denoted by \\(R(\\theta)\\) here, to the training loss/cost function:\n\\(J_\\lambda(\\theta)=J(\\theta)+\\lambda R(\\theta)\\).”\n\n“When \\(\\lambda=0\\), the regularized loss is equivalent to the original loss. When \\(\\lambda\\) is a sufficiently small positive number, minimizing the regularized loss is effectively minimizing the original loss with the regularizer as a tie-breaker.”\n\n“When the regularizer is extremely large, the original loss is not effective (and likely the model will have a large bias).”"
+      }
+    ]
+  },
+  {
+    "id": "q007",
+    "type": "direct",
+    "question": "What does Jensen’s inequality state for a convex function \\(f\\) and a random variable \\(X\\), and under what condition does equality hold?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "Jensen’s inequality states that if \\(f\\) is a convex function and \\(X\\) is a random variable, then:\n\n$$ \\mathbb{E}[f(X)] \\geq f(\\mathbb{E}[X]). $$\n\nIf \\(f\\) is strictly convex, equality holds if and only if \\(X\\) is constant with probability 1, meaning \\(X=\\mathbb{E}[X]\\) almost surely.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 151,
+        "page_end": 152,
+        "text": "“Let \\(f\\) be a convex function, and let \\(X\\) be a random variable. Then:\n\\(\\mathbb{E}[f(X)] \\geq f(\\mathbb{E}[X])\\).”\n\n“Moreover, if \\(f\\) is strictly convex, then \\(\\mathbb{E}[f(X)] = f(\\mathbb{E}[X])\\) holds if and only if \\(X=\\mathbb{E}[X]\\) with probability 1.”"
+      }
+    ]
+  },
+  {
+    "id": "q008",
+    "type": "direct",
+    "question": "Why does PCA normalize each feature by subtracting its empirical mean and dividing by its empirical standard deviation before computing the major axis of variation?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "PCA normalizes each feature to make attributes with different scales more comparable. Subtracting the empirical mean centers each feature around zero, while dividing by its empirical standard deviation rescales it so that differences in units or magnitude do not cause one feature to dominate the analysis simply because it has a larger numerical scale.\n\nThe text notes that this normalization may be omitted when all attributes are already measured on comparable scales.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 165,
+        "page_end": 166,
+        "text": "“We will shortly derive the PCA algorithm. But prior to running PCA per se, typically we first preprocess the data by normalizing each feature to have a mean of zero and a variance of one. We do this by subtracting the mean and dividing by the empirical standard deviation.”\n\n“Dividing by the standard deviation \\(\\sigma_j\\) rescales each coordinate to have unit variance, which ensures that different attributes are all treated on the same ‘scale.’”\n\n“This rescaling may be omitted if we had a prior knowledge that the different attributes are all on the same scale.”"
+      }
+    ]
+  },
+  {
+    "id": "q009",
+    "type": "direct",
+    "question": "How does reinforcement learning differ from supervised learning in terms of how the learning agent receives feedback, and what role do rewards play in reinforcement learning?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "In supervised learning, the learning algorithm is given explicit labels that specify the correct answer for each input. In reinforcement learning, there is no explicit supervision indicating the correct action at each step. Instead, the agent receives rewards that indicate how well or poorly it is performing and must learn which actions to take over time in order to maximize its rewards.\n\nFor example, in the four-legged walking example, the agent receives positive rewards for moving forward and negative rewards for moving backward or falling over. The agent must use these rewards to determine which actions lead to better outcomes.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 187,
+        "page_end": 187,
+        "text": "“In supervised learning, we saw algorithms that tried to make their outputs mimic the labels given in the training set. In that setting, the labels gave an unambiguous ‘right answer’ for each of the inputs.”\n\n“In contrast, for many sequential decision making and control problems, it is very difficult to provide this type of explicit supervision to a learning algorithm.”\n\n“In the reinforcement learning framework, we will instead give our algorithms only a reward function, which indicates to the learning agent when it is doing well, and when it is doing poorly.”\n\n“In the four-legged walking example, the reward function might give the robot positive rewards for moving forwards, and negative rewards for either moving backwards or falling over.”"
+      }
+    ]
+  },
+  {
+    "id": "q010",
+    "type": "direct",
+    "question": "What makes REINFORCE a model-free policy-gradient algorithm, and what objective does it optimize?",
+    "document_ids": [29],
+    "answerable": true,
+    "reference_answer": "REINFORCE is a model-free algorithm because it does not require knowledge of the environment's transition probabilities or reward function. Instead, it samples trajectories by interacting with the environment and uses the observed rewards to optimize the policy directly. It also does not require value functions or \\(Q\\)-functions.\n\nThe algorithm optimizes the expected total payoff of the policy \\(\\pi_\\theta\\) over the parameter \\(\\theta\\):\n\n$$ \\eta(\\theta) = \\mathbb{E}\\left[ \\sum_{t=0}^{T-1}\\gamma^tR(s_t,a_t) \\right]. $$\n\nThus, the objective is to find policy parameters that maximize the expected discounted reward over a finite horizon.",
+    "reference_evidence": [
+      {
+        "document_id": 29,
+        "page_start": 218,
+        "page_end": 218,
+        "text": "“We will present a model-free algorithm called REINFORCE that does not require the notion of value functions and \\(Q\\) functions.”\n\n“The advantage of applying REINFORCE is that we only need to assume that we can sample from the transition probabilities \\(\\{P_{sa}\\}\\) and can query the reward function \\(R(s,a)\\) at state and action \\(s,a\\), but we do not need to know the analytical form of the transition probabilities or the reward function either.”\n\n“We consider optimizing the expected total payoff of the policy \\(\\pi_\\theta\\) over the parameter \\(\\theta\\) defined as”\n\nη(θ)=E[\nt=0\n∑\nT−1\n\t​\n\nγ\nt\nR(s\nt\n\t​\n\n,a\nt\n\t​\n\n)]."
+      }
+    ]
+  },
+  {
+    "id": "q011",
+    "type": "direct",
+    "question": "Why is BGP needed for exterior routing between independently managed organizations, and why are interior routing protocols such as Distance-Vector or Link-State protocols not well suited for choosing between the available routes?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "BGP is needed because exterior routing involves choosing routes between independently managed organizations, where there is no single administrative authority that can dictate a common routing protocol or a common method for assigning link costs.\n\nInterior routing protocols assume a common administrative setting in which the routing protocol and link-cost rules can be controlled consistently. In an exterior-routing scenario, neighboring organizations may use different metrics and policies—for example, one organization might use hop count while another bases costs on bandwidth or congestion. Therefore, choosing routes across organizational boundaries requires a protocol designed for communication and route selection between independently managed networks. BGP provides this mechanism.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 333,
+        "page_end": 333,
+        "text": "“But now consider the problem of exterior routing; that is, of choosing among routes that have been offered by independent neighboring organizations.”\n\n“The routing-update protocol has to be universal, so any pair of neighboring organizations will be able to communicate.”\n\n“And link costs are difficult to use, because there are multiple incompatible ways of measuring link cost. Exterior routing is the role for BGP.”\n\nThe text also explains the limitation of applying interior routing protocols directly:\n\n“If A wanted to use one of the interior routing-update protocols to choose its path to D, it would face several fairly technical problems.”\n\nFor example:\n\n“what if B uses distance-vector with C while C speaks only in link-state messages?”\n\nand:\n\n“what if B measures its path costs using the hopcount metric, while C assigns costs based on bandwidth, or congestion, or peercapacity considerations?”"
+      }
+    ]
+  },
+  {
+    "id": "q012",
+    "type": "direct",
+    "question": "What are the two main features that UDP adds beyond the IP layer, and how do these features enable an application to communicate with a specific server process?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "UDP adds port numbers and a checksum beyond the IP layer. Port numbers allow an application to communicate with a specific server process on a host rather than simply addressing the host itself. A UDP communication endpoint is identified by a \\((host, port)\\) pair, also called a socket.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 361,
+        "page_end": 361,
+        "text": "“The two features it adds beyond the IP layer are port numbers and a checksum.”\n\n“The port numbers are what makes UDP into a real transport protocol: with them, an application can now connect to an individual server process (that is, the process ‘owning’ the port number in question), rather than simply to a host.”\n\n“As with TCP, a UDP (host,port) pair is known as a socket (though UDP ports are considered a subset of TCP ports).”"
+      }
+    ]
+  },
+  {
+    "id": "q013",
+    "type": "direct",
+    "question": "How does the TCP-Reno-like profile in DCCP control its sending rate, and how does DCCP differ from TCP in representing the sender's congestion window?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "The TCP-Reno-like DCCP profile follows TCP Reno-style congestion control. The sender increases its congestion-control value by one for each RTT without packet loss and halves it when packet loss occurs. However, because DCCP does not use sliding windows, its cwnd does not represent a window size. Instead, the sender maintains an Estimated FlightSize, called the pipe value in RFC 4341, which represents the amount of outstanding data. The sender may transmit additional packets as long as the pipe value remains below cwnd.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 499,
+        "page_end": 499,
+        "text": "“The sender maintains cwnd much as a TCP Reno sender would. It is incremented by one for each RTT with no loss, and halved in the event of packet loss.”\n\n“Because sliding windows is not used, cwnd does not represent a window size. Instead, the sender maintains an Estimated FlightSize... In RFC 4341 this is referred to as the pipe value.”\n\n“The sender is then allowed to send additional packets as long as pipe \u003C cwnd.”"
+      }
+    ]
+  },
+  {
+    "id": "q014",
+    "type": "direct",
+    "question": "What is Active Queue Management (AQM), and how does it help reduce queuing delays in routers? Also, what problem can excessive queue capacity cause?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "Active Queue Management (AQM) refers to techniques in which routers actively manage their queues, primarily to reduce excessive queuing delays. Routers can manage queues by marking packets or dropping them before the queue completely runs out of space. By signaling to TCP connections that they should reduce their congestion window, AQM can also improve TCP performance and reduce overall queuing delays.\n\nExcessive queue capacity can cause bufferbloat, where large queues introduce excessive network delay. This can be particularly problematic for real-time applications such as voice and interactive video, and can also cause variability in delay, known as jitter.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 501,
+        "page_end": 501,
+        "text": "“Active Queue Management (AQM) means that routers take some active steps to manage their queues. The primary goal of AQM is to reduce excessive queuing delays.”\n\n“Generally routers manage their queues either by marking packets or by dropping them.”\n\n“By signaling to TCP connections that they should reduce cwnd, overall queuing delays are also reduced.”\n\n“Excessive delay due to excessive queue capacity is known as bufferbloat.”\n\n“If you’re interested in real-time traffic like voice and interactive video, or even simply in fast web-page loads, bufferbloat becomes a problem. Large queues can also lead to delay variability, or jitter.”"
+      }
+    ]
+  },
+  {
+    "id": "q015",
+    "type": "direct",
+    "question": "How does Bit-by-bit Round Robin (BBRR) determine the virtual finishing time of a packet, and why does this finishing time remain unchanged when other input subqueues become active or inactive?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "BBRR models the service that each active input subqueue would receive by imagining that the router transmits one bit at a time from each active subqueue in round-robin order. It uses a rounds counter \\(R(t)\\), which represents the number of round-robin one-bit cycles that have occurred since all input subqueues were empty.\n\nWhen a packet of size \\(S\\) bits arrives, its arrival-time rounds-counter value \\(R_P=R(t_P)\\) is first recorded. If the packet can begin transmission immediately, its virtual finishing time is:\n\n$$ F_P=R_P+S. $$\n\nIf the packet's subqueue is nonempty, its starting point is instead determined by the previous packet's finishing time:\n\n$$ Start=\\max(R(\\text{now}),F_{\\text{prev}}) $$\n\nand therefore:\n\n$$ F_P=Start+S. $$\n\nThe key invariant is that once a packet starts transmission at \\(R_0=R(t_0)\\), it finishes at \\(R_0+S\\), regardless of whether other subqueues later become active or inactive. This makes the virtual finishing times stable and allows packets to be sent in increasing order of \\(F_P\\).",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 560,
+        "page_end": 560,
+        "text": "“The trick to making the BBRR approach workable is to find an ‘invariant’ formulation of finishing time that does not change as later packets arrive, or as other subqueues become active or inactive.”\n\n“We define the ‘rounds counter’ \\(R(t)\\), where \\(t\\) is the time measured in units of the transmission time for one bit.”\n\n“An important attribute of \\(R(t)\\) is that, if a packet of size \\(S\\) bits starts transmission via BBRR at \\(R_0=R(t_0)\\), then it will finish at \\(R=R_0+S\\), regardless of whether any other input subqueues become active or become empty.”\n\n“If the subqueue was nonempty, we look up the (future) finishing \\(R\\)-value of the packet immediately ahead of \\(P\\) in its subqueue...”\n\n$$ Start=\\max(R(\\text{now}),F_{\\text{prev}}) $$\nF\nP\n\t​\n\n=Start+S"
+      }
+    ]
+  },
+  {
+    "id": "q016",
+    "type": "direct",
+    "question": "Under what conditions do packets finish transmission under WFQ in the same order as under GPS, and when can the GPS and WFQ finishing order differ?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "If all subqueues are always active, or if a fixed subset of subqueues is always active, packets finish under WFQ in the same order as under GPS. This is because WFQ transmits packets in the order of their calculated GPS finishing times, while the virtual clock used to calculate those times progresses at a rate proportional to real time.\n\nIf all subqueues are active at the start, the finishing order also remains the same as long as each packet arrives before its subqueue becomes inactive. However, when some subqueues become idle and later receive packets, the finishing order and the relative GPS/WFQ finishing times can change.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 564,
+        "page_end": 564,
+        "text": "“First, if all subqueues are always active (or if a fixed subset of subqueues is always active), then packets finish under WFQ in the same order as they do under GPS.”\n\n“If all subqueues are always active, we can assume that all packets were in their subqueues as of time T=0; the finishing order is the same as long as each packet arrived before its subqueue went inactive.”\n\n“The finishing order and the relative GPS/WFQ finishing times may change, however, if—as will usually be the case—some subqueues are sometimes idle; that is, if packets sometimes ‘arrive late’ for some subqueues.”"
+      }
+    ]
+  },
+  {
+    "id": "q017",
+    "type": "direct",
+    "question": "What is RMON, how is monitoring performed by an RMON agent, and what types of monitoring information can RMON collect?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "RMON (Remote MONitoring) is an extension of SNMP in which an SNMP agent takes on some monitoring responsibilities itself. RMON primarily provides passive monitoring: the agent monitors network traffic by placing the designated interface into promiscuous mode and capturing traffic. An SNMP manager controls the agent's RMON activity by inserting new rows into various control tables.\n\nRMON statistics can be organized into several groups, including error and packet-size statistics, historical traffic data, hosts observed by an interface, top-N senders or receivers, and traffic information organized by sender/receiver pairs.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 681,
+        "page_end": 681,
+        "text": "“RMON, for Remote MONitoring, was an early attempt ... at having an SNMP agent take on some monitoring responsibilities of its own.”\n\n“RMON implements only passive monitoring; there is no capability for the remote agent to send out its own SNMP queries, even on pings.”\n\n“Monitoring is implemented by putting the designated interface into promiscuous mode ... and capturing all traffic.”\n\n“An agent’s RMON activity is controlled by an SNMP manager through the insertion of new rows in various control tables.”\n\nThe text identifies these RMON statistics groups:\n\n“statistics: counts of errors and counts of packets in size ranges...”\n\n“history: The statistics data, taken at regular intervals”\n\n“hosts: The Ethernet senders and receivers seen by an interface”\n\n“host top N: The top-N senders or receivers”\n\n“matrix: Information on traffic by ⟨sender,receiver⟩ pair”"
+      }
+    ]
+  },
+  {
+    "id": "q018",
+    "type": "direct",
+    "question": "How do cryptographic hash functions provide authentication in SNMPv3, and why is a shared secret key incorporated into the hash-based authentication process?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "SNMPv3 uses cryptographic hash functions for authentication. A cryptographic hash takes data of arbitrary length and produces a fixed-length hash such that knowing the hash does not practically reveal the original data, and it is computationally infeasible to find a message that produces a given hash.\n\nFor authentication using a shared secret key \\(k\\), the basic approach is to append the hash of the message combined with the key to the message:\n\n$$ \\text{hash}(m\\mathbin{\\|}k) $$\n\nAn eavesdropper can see the message and resulting hash but cannot generate the same hash for a modified message without knowing the secret key. Thus, the shared key allows the receiver to verify that the message was produced by someone possessing the key.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 690,
+        "page_end": 690,
+        "text": "“SNMPv3 authentication is based on cryptographic hash functions: functions which take a data string of arbitrary length and return a fixed-length hash”\n\n“Knowing the hash value sheds no practical light on the original data.”\n\n“Given a hash value, there is no feasible way to find a message yielding that hash.”\n\n“If two parties share a secret key \\(k\\), the basic hash-based way to ‘sign’ a message \\(m\\) is to append to it the value hash(\\(m\\mathbin{\\|}k\\))...”\n\n“An eavesdropper will see \\(m\\) and hash(\\(m\\mathbin{\\|}k\\)) but this will provide no information about \\(k\\), and, similarly, an attacker will, given a message \\(m\\), not be able to generate the value hash(\\(m\\mathbin{\\|}k\\)) without knowing \\(k\\).”"
+      }
+    ]
+  },
+  {
+    "id": "q019",
+    "type": "direct",
+    "question": "How does certificate pinning help prevent man-in-the-middle attacks, and what happens if a server's pinned certificate or key is compromised?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "Certificate pinning prevents man-in-the-middle attacks by having a browser remember a trusted certificate or public key the first time it connects to a server. On subsequent connections, the server must present a certificate containing at least one of the pinned credentials. A certificate that does not match the pinned credential is rejected.\n\nIf the server's pinned key is compromised, a backup certificate/key can be pinned in advance so that it can be used as a replacement. However, if both the primary and backup keys are compromised, the site may become inaccessible to returning visitors, especially if the CA is also pinned.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 751,
+        "page_end": 751,
+        "text": "“Alice (or her browser) makes a note the first time she connects to \\(S_{Bob}\\) that the certificate authority is \\(C_A\\) or that Bob’s public key is \\(K_S\\), or both.”\n\n“Future connections to \\(S_{Bob}\\) must match at least one of these credentials.”\n\n“If \\(S_{Bob}\\) sends a pin directive for \\(K_S\\), then Alice’s browser remembers \\(K_S\\), and any new certificate at \\(S_{Bob}\\) will be a mismatch.”\n\n“Bob can also obtain, along with \\(K_S\\), a backup certificate \\(K_{S-backup}\\), and have \\(S_{Bob}\\)’s pin directives pin both of these.”\n\n“If \\(K_S\\) and \\(K_{S-backup}\\) are both compromised, and \\(C_A\\) wasn’t pinned, the site may simply become inaccessible to returning visitors.”"
+      }
+    ]
+  },
+  {
+    "id": "q020",
+    "type": "direct",
+    "question": "How does IPv6 subnetting differ from IPv4 subnetting in terms of the address space available for subnets, and how does a site with a /56 prefix divide that space into /64 subnets?",
+    "document_ids": [27],
+    "answerable": true,
+    "reference_answer": "IPv6 subnetting is generally simpler because the standard subnet size is /64, and a site receiving a /56 prefix from its provider can create up to 256 separate /64 subnets. This provides sufficient subnet space for common purposes such as connecting different LANs, separating traffic, or supporting intervening routers.\n\nIn the example, the site receives the external prefix 2001:0:0::/62 and uses three internal /64 subnets:\n\n2001:0:0:1::/64\n2001:0:0:2::/64\n2001:0:0:3::/64\n\nThe 2001:0:0::/64 subnet is used for the provider connection.",
+    "reference_evidence": [
+      {
+        "document_id": 27,
+        "page_start": 275,
+        "page_end": 275,
+        "text": "“In IPv6, this is much simpler: all subnets are of size /64, following the guidelines set out in 11.3 Network Prefixes.”\n\n“A site receiving from its provider an address prefix of size /56 can assign up to 256 /64 subnets.”\n\n“The diagram below shows a site with an external prefix of 2001::/62, two routers R1 and R2 with interfaces numbered as shown, and three internal LANs corresponding to three subnets 2001:0:0:1::/64, 2001:0:0:2::/64, and 2001:0:0:3::/64. The subnet 2001:0:0::/64 (2001::/64) is used to connect to the provider.”"
+      }
+    ]
+  },
+  {
+    "id": "q021",
+    "type": "direct",
+    "question": "According to the survey, how does Kubernetes adoption vary with the number of containers an organization manages, and what does the survey report about organizations using Kubernetes without directly managing containers?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "The survey reports that 69% of respondents whose organizations manage containers mentioned using Kubernetes. Kubernetes adoption is higher among organizations deploying containers at larger volumes; for example, about 81% of respondents who run 1,000 or more containers said they use Kubernetes.\n\nThe survey also found that some organizations use Kubernetes without directly managing containers. In some cases, respondents use a platform or vendor-provided tool that incorporates Kubernetes technology as part of a bundled solution. Therefore, the report uses the term “Kubernetes user” to refer to people using the orchestration platform to manage containers, rather than only people directly using the Kubernetes project itself.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 15,
+        "page_end": 15,
+        "text": "“When asked in a separate question about how their organization manages containers, 69 percent mentioned Kubernetes.”\n\n“The percent of respondents who mention Kubernetes increases especially when the containers are deployed in higher volumes. For example, about 81 percent of respondents who run 1,000 or more containers say they use Kubernetes.”\n\n“There are some findings that show uses of Kubernetes without containers.”\n\n“Some of these respondents, perhaps, use a platform or vendor-provided tools that incorporate Kubernetes technology in a bundled solution.”\n\n“Consequently, for the rest of this report, the term ‘Kubernetes user’ will refer to those that use the orchestration platform to manage containers, rather than those that said they use the project itself.”"
+      }
+    ]
+  },
+  {
+    "id": "q022",
+    "type": "direct",
+    "question": "What does the survey report about how Kubernetes is deployed and managed, and what does it indicate about the effort required to implement Kubernetes?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "The survey found that 74% of respondents were using a vendor-provided Kubernetes offering, while another 74% were using a community-supported offering, indicating that organizations may use different Kubernetes implementations depending on their use cases. Kubernetes management itself primarily falls to IT operations and SRE teams, with DevOps also involved.\n\nThe survey also found that twice as many respondents said implementing Kubernetes took too long compared with those who said it took less time than expected. This suggests that organizations may face challenges during implementation, although the report notes that Kubernetes experience is expected to become more widespread and improve over time.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 30,
+        "page_end": 31,
+        "text": "“My 2017 survey, 25.4 percent of people running Kubernetes in production were using a vendor-provided offering. Still, 74 percent were also using a community-supported offering.”\n\n“The task of managing Kubernetes itself falls to IT operations and SRE teams, with the DevOps role also being involved.”\n\n“When asked about how long it took to implement Kubernetes, twice as many respondents said it took more time than they expected compared to those that said it took less.”\n\n“This points to room for improvement, which is expected to occur as experience with Kubernetes becomes more widespread in the workforce.”"
+      }
+    ]
+  },
+  {
+    "id": "q023",
+    "type": "direct",
+    "question": "What are the main characteristics of custom, self-hosted Kubernetes deployments, and what tools or developments have made deploying Kubernetes clusters easier?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "Custom, self-hosted Kubernetes deployments involve organizations deploying and managing Kubernetes clusters themselves rather than relying entirely on a managed offering. The Kubernetes project provides production-oriented source code and deployment tools, while the community has increasingly focused on simplifying installation and deployment.\n\nTools such as Kubeadm simplify cluster deployment by automating control-plane configuration and execution environments. Other tools and platforms, including Cloud Foundry Container Runtime, Canonical conjure-up, and Kops, have also made Kubernetes deployment easier across data centers and public cloud environments.\n\nThe setup, configuration, and deployment experience can vary depending on the chosen tools.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 39,
+        "page_end": 40,
+        "text": "“The upstream codebase available in the GitHub repo is used for deploying production Kubernetes clusters.”\n\n“As Kubernetes matures, there is a great emphasis from the community on simplifying the installation.”\n\n“Kubeadm simplifies deploying a cluster by automating the configuration of control plane and the execution environments.”\n\n“The availability of tools such as Cloud Foundry Container Runtime, Canonical conjure-up and kops have also made Kubernetes deployment simpler across data center and public cloud environments.”\n\n“The setup, configuration and deployment experience can vary based on the choice of tools.”"
+      }
+    ]
+  },
+  {
+    "id": "q024",
+    "type": "direct",
+    "question": "What are the main options and tools described for deploying Kubernetes on public cloud platforms, and what trade-off does a custom self-hosted deployment involve?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "Kubernetes can be deployed on public cloud platforms such as Amazon EC2, Azure VMs, and Google Compute Engine (GCE). Several tools are available to simplify deployment, including Kops for AWS, Conjure-up for deploying Kubernetes distributions across AWS, Azure, Google Cloud, and Joyent, Kubespray for cloud or bare-metal deployments, and Cloud Foundry Container Runtime for deploying Kubernetes using the BOSH toolchain.\n\nA custom, self-hosted deployment provides organizations with absolute control over the entire stack, but it requires skilled DevOps teams that are familiar with installing and maintaining Kubernetes clusters in production.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 44,
+        "page_end": 45,
+        "text": "“Kubernetes is often deployed in IaaS platforms such as Amazon EC2, Azure VMs and Google Compute Engine. There are custom tools that target specific public cloud environments.”\n\n“Kops is a popular open source project that has become the official tool for deploying Kubernetes in AWS.”\n\n“Conjure-up is a preferred tool for deploying Kubernetes Core of the Canonical Distribution of Kubernetes on AWS, Azure, Google Cloud and Joyent.”\n\n“Kubespray can be used in the cloud as well as on bare metal.”\n\n“Cloud Foundry Container Runtime is a recent addition to the supported tools to deploy Kubernetes using the popular BOSH toolchain.”\n\n“Key Takeaway: Consider a self-hosted, custom deployment when you want absolute control over the entire stack. This option demands skilled DevOps teams familiar with installation and maintenance of a Kubernetes cluster in production.”"
+      }
+    ]
+  },
+  {
+    "id": "q025",
+    "type": "direct",
+    "question": "What managed Kubernetes platforms are described in the text, and how do their capabilities differ in terms of infrastructure support, management model, and specialized features?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "The text describes several managed Kubernetes platforms with different deployment environments and capabilities:\n\nGiant Swarm provides managed Kubernetes on AWS and on-premises infrastructure and gives customers full administrator rights through its APIs.\nIBM Cloud Private is designed for enterprise data centers and provides an integrated environment for developing and managing on-premises containerized applications with Kubernetes.\nMadcore combines managed Kubernetes with deep-learning platforms, including built-in support for Spark and related deep-learning tools, and is available only on AWS.\nPlatform9 Managed Kubernetes is a SaaS-based, infrastructure-agnostic service that can span multiple public clouds and on-premises data centers through a single control plane.\nStackPointCloud provides a web-based interface for deploying and managing Kubernetes clusters across AWS, DigitalOcean, Google Cloud Platform, and Microsoft Azure. It also provides a marketplace of applications and supports connecting federated clusters across different environments.\nTectonic is Red Hat's commercial managed Kubernetes platform, available across AWS, Azure, and bare-metal environments. It integrates Kubernetes with Container Linux and includes enterprise management features such as LDAP and SAML-based authentication.\n\nThe text's overall distinction is that managed Kubernetes deployments aim to provide the benefits of both cloud-based service-level management and controlled infrastructure, while allowing organizations to retain control over other components of their production stack.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 47,
+        "page_end": 48,
+        "text": "“Giant Swarm is a managed Kubernetes offering available on AWS and on-premises infrastructures.”\n\n“IBM offers a flavor of its cloud platform called IBM Cloud Private that can run within enterprise data centers.”\n\n“Madcore attempts to bring managed Kubernetes platforms and deep learning platforms together.”\n\n“Platform9 Managed Kubernetes is a Software as a Service (SaaS)-based managed solution which is infrastructure agnostic and can span multiple public clouds and on-premises data centers.”\n\n“StackPointCloud claims to deploy and manage a Kubernetes cluster to the cloud provider in three steps using a web-based interface.”\n\n“The service supports AWS, DigitalOcean, Google Cloud Platform and Microsoft Azure.”\n\n“Tectonic ... offers a commercial, managed Kubernetes platform packaged as Tectonic. It can be installed in AWS, Azure, VMware and bare metal environments.”\n\n“Tectonic is tightly integrated with Container Linux, a lightweight, container-optimized Linux distribution...”\n\n“Managed Kubernetes deployments offer the best of both worlds: Service Level Agreement (SLA)-driven managed clusters running within a controlled environment.”"
+      }
+    ]
+  },
+  {
+    "id": "q026",
+    "type": "direct",
+    "question": "What is Kubernetes-based PaaS, and how does it simplify application deployment for developers compared with managing Kubernetes infrastructure directly?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "Kubernetes-based PaaS is a platform built on top of Kubernetes that provides an end-to-end application lifecycle management experience. It allows developers to bring application source code to the platform instead of directly managing Docker images, Kubernetes pods, or other operational aspects of Kubernetes.\n\nThe PaaS layer abstracts the underlying Kubernetes details and exposes only the APIs developers need. This allows developers to focus primarily on their application code and lifecycle while the platform handles the underlying container and Kubernetes infrastructure. Kubernetes-based PaaS can be deployed in public cloud environments or inside enterprise data centers.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 53,
+        "page_end": 54,
+        "text": "“Kubernetes has become the de facto orchestration engine that manages the containers. The PaaS layer is built on top of Kubernetes to deliver end-to-end application lifecycle management services.”\n\n“Kubernetes-based PaaS is designed for developers so that they can bring the source code to the platform instead of packaged artifacts such as Docker images or Kubernetes pods.”\n\n“They do not need to deal with the operational aspects of the platform. Instead, they squarely focus on the code and the application life cycle.”\n\n“The PaaS layer abstracts the underlying details of Kubernetes and exposes only the APIs developers understand.”"
+      }
+    ]
+  },
+  {
+    "id": "q027",
+    "type": "direct",
+    "question": "How does Kubernetes authenticate API requests when multiple authentication methods are configured, and what authentication methods are described in the text?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "Kubernetes authenticates API requests using authentication modules (authenticators). An administrator can configure multiple authenticators, which are invoked sequentially. A user is considered authenticated as soon as one authenticator successfully authenticates the request. If none of the configured authenticators succeeds, the API server rejects the request with a 401 error.\n\nThe text describes several authentication methods, including client certificates, static tokens, passwords, bootstrap tokens, and service account tokens. Client certificates use certificate-based authentication, static tokens use a token file, passwords use a password file, bootstrap tokens are stored as Secrets in the kube-system namespace, and service account tokens are automatically associated with pods and can be used to authenticate to the API server.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 72,
+        "page_end": 73,
+        "text": "“The authentication operation in Kubernetes is accomplished via the use of Authentication Modules, also known as authenticators.”\n\n“If the administrator specifies multiple authenticators, they will be invoked in sequence. The user is considered authenticated when one of the modules returns a success result. If none of the modules are successful, the server rejects the request with a 401 error code.”\n\nThe available methods described include:\n\n“Kubernetes authenticators allow the use of Client Certificates, Passwords, Static Tokens, Bootstrap Tokens and JSON Web Tokens (JWT) for authentication purposes.”\n\n“One more authentication category worth noting is service account tokens, which are JSON Web Tokens.”\n\n“A service account is usually attached to a pod in the cluster. A service account token is mounted into the pod and it enables the pod to access the API server.”"
+      }
+    ]
+  },
+  {
+    "id": "q028",
+    "type": "direct",
+    "question": "How does Kubernetes Role-Based Access Control (RBAC) define and apply permissions, and what is the difference between a ClusterRole and a namespace-specific Role?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "Kubernetes RBAC groups logically related permissions into roles. A role can grant access to particular resources by specifying the allowed API groups, resources, and request verbs such as get, watch, and list.\n\nA ClusterRole is cluster-wide and can grant access to resources across different namespaces. The same role definition can instead be applied to a single namespace, in which case it functions as a Role.\n\nIn the example, the ClusterRole permits reading pod logs in the core API group and reading or writing jobs in the batch API group. When a user with this role requests a pod log or job resource covered by the rules, the request is granted.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 75,
+        "page_end": 76,
+        "text": "“A Kubernetes user is similar to roles used in classic RBAC in that it encapsulates a set of logically-grouped permissions.”\n\n“For instance, you can create a role that has read access to a particular resource by combining the request verbs ‘get,’ ‘watch’ and ‘list,’ using a single role.”\n\n“A role can be cluster wide, denoted as ClusterRole, which can be used to grant access to resources across different namespaces in the same cluster.”\n\n“Or, it can be applied to a single namespace, in which case it is simply denoted as Role.”\n\nThe example ClusterRole contains rules allowing:\n\nresources: [\"pods/log\"] with verbs [\"get\", \"list\", \"watch\"]\n\nand:\n\nresources: [\"jobs\"] with verbs [\"get\", \"list\", \"watch\", \"create\", \"update\", \"patch\", \"delete\"]\n\nThe text explains:\n\n“This cluster role can read resources pod logs in the core API group and can read/write ‘jobs’ in the batch API group.”"
+      }
+    ]
+  },
+  {
+    "id": "q029",
+    "type": "direct",
+    "question": "How do Kubernetes ResourceQuota objects control resource consumption within a namespace, and what resource limits are specified in the example for the AccountInfo namespace?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "A Kubernetes ResourceQuota places limits on the amount of resources that can be consumed within a namespace. It can limit resources such as the number of pods, CPU requests and limits, and memory requests and limits. Kubernetes enforces these limits for a namespace once a ResourceQuota object is defined for it.\n\nIn the AccountInfo example, the quota allows at most 7 pods, with total CPU requests limited to 1 CPU, total memory requests to 2 GiB, total CPU limits to 3 CPU, and total memory limits to 3 GiB.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 82,
+        "page_end": 83,
+        "text": "“A resource quota, defined by a ResourceQuota object, puts limits on resource consumption for each namespace.”\n\n“For example, it can limit how many pods (or other objects) can run in a namespace and the amount of memory requests and CPU cycles that may be consumed by resources in that namespace.”\n\nThe example specifies:\n\nhard:\n  pods: \"7\"\n  requests.cpu: \"1\"\n  requests.memory: 2Gi\n  limits.cpu: \"3\"\n  limits.memory: 3Gi\n\nThe text explains:\n\n“This file specifies that there can be at most seven pods running in the namespace. The memory request total for all containers must not exceed 2 gibibytes (GiB). The memory limit total for all containers must not exceed 3 GiB. The CPU request total for all containers must not exceed 1 CPU. The CPU limit total for all containers must not exceed 3 CPU.”"
+      }
+    ]
+  },
+  {
+    "id": "q030",
+    "type": "direct",
+    "question": "What security practices does the text recommend for protecting Kubernetes workloads throughout their lifecycle, from configuring runtime privileges to managing vulnerabilities and deploying applications?",
+    "document_ids": [28],
+    "answerable": true,
+    "reference_answer": "The text recommends treating Kubernetes security as an end-to-end lifecycle concern rather than focusing only on runtime security. At the workload level, administrators should properly configure PodSecurityPolicy to control privileges and should use a conservative approach to settings such as privileged mode, privilege escalation, host-network access, IPC namespace access, and running containers as root.\n\nThe text also recommends enabling authorization and admission controls, using NetworkPolicy to restrict access to services, proactively managing vulnerabilities throughout the application, environment, and deployment lifecycle, and ensuring that only approved and secure images reach production. Administrators should also harden the node environment, enable appropriate runtime security controls, and log everything consistently.",
+    "reference_evidence": [
+      {
+        "document_id": 28,
+        "page_start": 86,
+        "page_end": 88,
+        "text": "“Make sure that you configure PodSecurityPolicy properly to set proper privileges and rights for your namespaces, pods, containers and volumes.”\n\nThe recommended privilege questions include:\n\n“Does the pod need to run in a privileged mode?”\n\n“Does privilege escalation need to be allowed?”\n\n“Does the pod need to be allowed access to the host network, process ID and inter-process communication (IPC) namespace?”\n\n“Do containers need to be run as root?”\n\nThe text further recommends:\n\n“Enable Authorization Plugins and Appropriate Admission Controls”\n\nand explains that:\n\n“Role-based Access Control (RBAC) and Attribute-based Access Control (ABAC) are critical tools to contain cluster-wide compromises.”\n\nFor network security:\n\n“An administrator should utilize NetworkPolicy as an important construct to provide network isolation.”\n\nFor vulnerability management:\n\n“An administrator must manage cluster vulnerabilities proactively. That means utilizing vulnerability assessment and management tools throughout the life cycle of the application, the environment and the deployment process.”\n\nFinally, the lifecycle recommendations include:\n\n“Ensure only approved code is built into the images and only approved images make it into production.”\n\n“Configure and harden the node environment.”\n\n“Ensure the right set of controls are enabled for the runtime environment.”\n\n“Log everything and log always.”"
+      }
+    ]
+  }
+]

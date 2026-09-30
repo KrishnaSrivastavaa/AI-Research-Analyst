@@ -39,3 +39,6 @@ build/
 *.db
 *.sqlite
 *.sqlite3
+
+# eval logs
+.deepeval/

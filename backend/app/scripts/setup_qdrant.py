@@ -16,7 +16,7 @@ async def setup_qdrant():
     )
 
     if not exists:
-        await qdrant_client.create_collection(
+        qdrant_client.create_collection(
             collection_name=collection_name,
             vectors_config={
                 "dense": models.VectorParams(

@@ -13,8 +13,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials =  Depends(
     try: 
         jwt = credentials.credentials
         response = supabase.auth.get_claims(jwt)
-        print(response)
-        print(type(response))
         return response["claims"]
 
     except Exception as e:

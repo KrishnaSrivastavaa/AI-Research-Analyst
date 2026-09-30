@@ -38,7 +38,9 @@ export default function Auth() {
                     password
                 );
 
-                setSuccess(data.message);
+                setSuccess(
+                    "Account created successfully. Please check your email and click the confirmation link before signing in."
+                );
 
                 setMode("signin");
 
@@ -282,7 +284,7 @@ export default function Auth() {
                     {/* Success */}
 
                     {success && (
-                        <div className="rounded-lg border border-green-800 bg-green-950/50 px-4 py-3 text-sm text-green-400">
+                        <div className="rounded-lg border border-green-800 bg-green-950/50 px-4 py-3 text-sm leading-5 text-green-400">
                             {success}
                         </div>
                     )}

@@ -17,6 +17,7 @@ async def signup(user: SignUp_Schema):
         "email": user.email,
         "password": user.password,
         "options": {
+            "email_redirect_to": "http://localhost:5173/auth/confirm",
             "data": {
                 "name": user.name,
                 "username": user.username,
@@ -33,9 +34,10 @@ async def signup(user: SignUp_Schema):
         )
 
     return {
-        "message": "Signup successful",
-        "user_id": response.user.id
-    }
+            "message": "Account created. Please check your email to confirm your account.",
+            "user_id": response.user.id,
+            "email_confirmation_required": response.session is None
+        }
 
 
 @router.post("/signin")

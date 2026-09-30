@@ -1,6 +1,7 @@
 export interface SignupResponse {
     message: string;
     user_id: string;
+    email_confirmation_required: boolean;
 }
 
 export interface SigninResponse {

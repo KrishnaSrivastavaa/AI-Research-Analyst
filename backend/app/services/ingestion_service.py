@@ -14,38 +14,55 @@ async def store_embeddings(chunks: List, owner_id):
         model_name="Qdrant/bm25"
     )
 
-    points = []
+    batch_size = 100
 
-    for chunk in chunks:
-        dense_vector = next(dense_model.embed([chunk.content]))
-        sparse_vector = next(sparse_model.embed([chunk.content]))
+    for start in range(0, len(chunks), batch_size):
 
-        points.append(
-            PointStruct(
-                id=chunk.id,
-                vector={
-                    "dense": dense_vector,
-                    "sparse": SparseVector(
-                        indices=sparse_vector.indices.tolist(),
-                        values=sparse_vector.values.tolist(),
-                    ),
-                },
-                payload={
-                    "chunk_id": chunk.id,
-                    "owner_id" : str(owner_id),
-                    "document_id": chunk.doc_id,
-                    "page_start": chunk.page_start,
-                    "page_end": chunk.page_end,
-                    "text": chunk.content,
-                    "metadata": chunk.chunk_metadata,
-                }
+        batch = chunks[start:start + batch_size]
+
+        points = []
+
+        for chunk in batch:
+
+            dense_vector = next(
+                dense_model.embed([chunk.content])
             )
+
+            sparse_vector = next(
+                sparse_model.embed([chunk.content])
+            )
+
+            points.append(
+                PointStruct(
+                    id=chunk.id,
+                    vector={
+                        "dense": dense_vector,
+                        "sparse": SparseVector(
+                            indices=sparse_vector.indices.tolist(),
+                            values=sparse_vector.values.tolist(),
+                        ),
+                    },
+                    payload={
+                        "chunk_id": chunk.id,
+                        "owner_id": str(owner_id),
+                        "document_id": chunk.doc_id,
+                        "page_start": chunk.page_start,
+                        "page_end": chunk.page_end,
+                        "text": chunk.content,
+                        "metadata": chunk.chunk_metadata,
+                    }
+                )
+            )
+
+        qdrant_client.upsert(
+            collection_name=settings.collection_name,
+            points=points
         )
 
-    qdrant_client.upsert(
-        collection_name=settings.collection_name,
-        points=points
-    )
+        print(
+            f"Uploaded Qdrant batch: "
+            f"{start} - {start + len(batch) - 1}"
+        )
 
 
 async def delete_document_vectors(document_id: int):

@@ -20,4 +20,6 @@ dependencies = [
     "langchain-text-splitters>=1.1.2",
     "fastembed>=0.8.1",
     "openai>=3.19.2",
+    "deepeval>=4.2.6",
+    "streamlit>=1.64.0",
 ]

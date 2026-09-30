@@ -7,8 +7,10 @@ from fastembed import TextEmbedding
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.models import Chunk
 from app.core.database import get_db
+from app.core.database import SessionLocal
 
-async def process_pdf(content: bytes, doc_id: int, db: AsyncSession):
+
+async def process_pdf(content: bytes, doc_id: int):
     doc = pymupdf.open(
         stream=content,
         filetype="pdf"
@@ -35,7 +37,7 @@ async def process_pdf(content: bytes, doc_id: int, db: AsyncSession):
 
             chunk = Chunk(
                 doc_id = doc_id,
-                chunk_index = len(chunks) - 1,
+                chunk_index = len(chunks),
                 content = chunk,
                 page_start = page_number,
                 page_end = page_number,
@@ -46,8 +48,9 @@ async def process_pdf(content: bytes, doc_id: int, db: AsyncSession):
 
             chunks.append(chunk)
 
-    db.add_all(chunks)
-    await db.flush()
+    async with SessionLocal() as db:
+        db.add_all(chunks)
+        await db.commit()
 
     return chunks  
 

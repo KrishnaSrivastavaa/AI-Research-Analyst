@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 
 import type { Document } from "../types";
@@ -32,6 +32,14 @@ export default function DocumentPanel({
     const fileInputRef =
         useRef<HTMLInputElement>(null);
 
+    const currentConversationIdRef =
+        useRef<number | null>(conversationId);
+
+    useEffect(() => {
+        currentConversationIdRef.current =
+            conversationId;
+    }, [conversationId]);
+
     const [uploading, setUploading] =
         useState(false);
 
@@ -61,6 +69,10 @@ export default function DocumentPanel({
             return;
         }
 
+        // Conversation where the upload started.
+        const uploadConversationId =
+            conversationId;
+
         try {
             setError("");
             setUploading(true);
@@ -78,32 +90,43 @@ export default function DocumentPanel({
 
             /*
              * Step 2:
-             * Attach the newly created document
-             * to the CURRENT conversation.
+             * Attach the document to the
+             * conversation where the upload started.
              */
             await addDocumentToConversation(
-                conversationId,
+                uploadConversationId,
                 documentId
             );
 
             /*
              * Step 3:
-             * Refresh documents attached to the
-             * current conversation.
+             * Refresh the documents for the
+             * conversation where the upload started.
              */
             const conversationDocuments =
                 await getConversationDocuments(
-                    conversationId
+                    uploadConversationId
                 );
 
-            onDocumentsChange(
-                conversationDocuments
-            );
+            /*
+             * Only update the currently displayed
+             * conversation if the user is still on
+             * the conversation where the upload started.
+             */
+            if (
+                currentConversationIdRef.current ===
+                uploadConversationId
+            ) {
+                onDocumentsChange(
+                    conversationDocuments
+                );
+            }
 
             /*
              * Step 4:
              * Refresh the user's complete document
-             * library.
+             * library regardless of the currently
+             * selected conversation.
              */
             const allDocuments =
                 await getDocuments();

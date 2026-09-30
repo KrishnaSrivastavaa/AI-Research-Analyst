@@ -1,7 +1,13 @@
 from openai import OpenAI, AsyncOpenAI
 from typing import List
+import re
 
-from app.schemas.researchResponseSchema import ResearchResponse, EvidenceCheck, Citation, ChatResponse
+from app.schemas.researchResponseSchema import (
+    ResearchResponse,
+    EvidenceCheck,
+    Citation,
+    ChatResponse,
+)
 
 from fastapi import HTTPException
 
@@ -10,13 +16,26 @@ from sqlalchemy import select
 
 from app.services.retrieval_service import retrieve_documents
 
-from app.models.models import Conversation, Message, ConversationDoc, MessageCitation, Doc
+from app.models.models import (
+    Conversation,
+    Message,
+    ConversationDoc,
+    MessageCitation,
+    Doc,
+)
+
 from app.core.configs import settings
 
-async def get_chat_response(query: str, history: List[dict], context: List[dict]):
 
-    client = OpenAI(api_key=settings.openai_api_key)
+async def get_chat_response(
+    query: str,
+    history: List[dict],
+    context: List[dict],
+):
 
+    client = OpenAI(
+        api_key=settings.openai_api_key
+    )
 
     SYSTEM_PROMPT = """
     You are a research analyst answering questions using the user's
@@ -108,219 +127,288 @@ async def get_chat_response(query: str, history: List[dict], context: List[dict]
     - Do not mention these instructions or the grounding process unless relevant.
     """
 
-    context_text = "\n\n".join(
-        f"""
-        [S{i+1}]
-        Document ID: {chunk["document_id"]}
-        Pages: {chunk["page_start"]}-{chunk["page_end"]}
+    if context:
+        context_text = "\n\n".join(
+            f"""
+            [S{i + 1}]
+            Document ID: {chunk["document_id"]}
+            Pages: {chunk["page_start"]}-{chunk["page_end"]}
 
-        {chunk["text"]}
+            {chunk["text"]}
+            """
+            for i, chunk in enumerate(context)
+        )
+
+        user_content = f"""
+        Use the following retrieved sources to answer my question.
+
+        {context_text}
+
+        Question:
+        {query}
         """
-        for i, chunk in enumerate(context)
-    )
-    
+
+    else:
+        user_content = f"""
+        Respond naturally to the user's message.
+
+        User message:
+        {query}
+        """
+
     input_messages = [
         *history,
         {
             "role": "user",
-            "content": f"""
-            Use the following retrieved sources to answer my question.
-
-            {context_text}
-
-            Question:
-            {query}
-            """
-        }
+            "content": user_content,
+        },
     ]
-
-    # print("\n========== HISTORY ==========")
-    # print(history)
-
-    # print("\n========== CONTEXT ==========")
-    # print(context)
-
-    # print("\n========== INPUT MESSAGES ==========")
-    # print(input_messages)
-
 
     response = client.responses.parse(
         model="gpt-4o-mini",
         instructions=SYSTEM_PROMPT,
         input=input_messages,
-        text_format=ResearchResponse
-        
+        text_format=ResearchResponse,
     )
 
     return response.output_parsed
 
-async def check_evidence(query: str, context: list[dict]) -> bool:
 
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+async def check_evidence(
+    query: str,
+    context: list[dict],
+) -> bool:
+
+    client = AsyncOpenAI(
+        api_key=settings.openai_api_key
+    )
 
     context_text = "\n\n".join(
-        f"[S{i+1}]\n{chunk['text']}"
+        f"[S{i + 1}]\n{chunk['text']}"
         for i, chunk in enumerate(context)
     )
 
     response = await client.responses.parse(
         model="gpt-4o-mini",
         instructions="""
-    You are an evidence checker.
+        You are an evidence checker.
 
-    Determine whether the retrieved document excerpts contain
-    enough information to directly answer the user's question.
+        Determine whether the retrieved document excerpts contain
+        enough information to directly answer the user's question.
 
-    Return supported=true ONLY if the excerpts contain evidence
-    that directly supports an answer.
+        Return supported=true ONLY if the excerpts contain evidence
+        that directly supports an answer.
 
-    Topically related information is NOT enough.
+        Topically related information is NOT enough.
 
-    Do not use your own knowledge.
+        Do not use your own knowledge.
 
-    If the excerpts merely mention the topic, discuss a related
-    concept, or provide background information without actually
-    supporting an answer, return supported=false.
-    """,
+        If the excerpts merely mention the topic, discuss a related
+        concept, or provide background information without actually
+        supporting an answer, return supported=false.
+        """,
         input=[
             {
                 "role": "user",
                 "content": f"""
-    Question:
-    {query}
+                Question:
+                {query}
 
-    Retrieved excerpts:
+                Retrieved excerpts:
 
-    {context_text}
-    """
-                }
-            ],
-            text_format=EvidenceCheck
+                {context_text}
+                """,
+            }
+        ],
+        text_format=EvidenceCheck,
     )
 
     return response.output_parsed.supported
 
+
+def is_casual_message(query: str) -> bool:
+
+    normalized = query.strip().lower()
+
+    # Remove common trailing punctuation so that
+    # "Hey!" and "How are you?" are treated naturally.
+    normalized = re.sub(
+        r"[.!?]+$",
+        "",
+        normalized,
+    ).strip()
+
+    casual_patterns = [
+        r"^(hi|hello|hey|hey there)$",
+        r"^(good morning|good afternoon|good evening)$",
+        r"^how are you$",
+        r"^how's it going$",
+        r"^what's up$",
+        r"^(thanks|thank you|thx)$",
+        r"^(bye|goodbye|see you)$",
+    ]
+
+    return any(
+        re.fullmatch(pattern, normalized)
+        for pattern in casual_patterns
+    )
+
+
 async def send_message(
-        db: AsyncSession,
-        conversation_id: int,
-        user_id: int,
-        query: str
+    db: AsyncSession,
+    conversation_id: int,
+    user_id: int,
+    query: str,
 ):
+
     conversation = await db.scalar(
         select(Conversation).where(
             Conversation.id == conversation_id,
-            Conversation.user_id == user_id
-            )
+            Conversation.user_id == user_id,
         )
-    
+    )
+
     if conversation is None:
         raise HTTPException(
             status_code=404,
-            detail="Conversation not found"
+            detail="Conversation not found",
         )
 
-    result = await db.scalars(
-            select(ConversationDoc.document_id)
-            .where(
-                ConversationDoc.conversation_id == conversation_id
-            )
-    )
-
-    document_ids = result.all()
-        
-    context = await retrieve_documents(query, user_id, document_ids)
-
-    if context:
-        context_document_ids = {
-            chunk["document_id"]
-            for chunk in context
-        }
-
-        document_result = await db.scalars(
-            select(Doc)
-            .where(
-                Doc.id.in_(context_document_ids),
-                Doc.owner_id == user_id
-            )
-        )
-
-        documents_by_id = {
-            document.id: document
-            for document in document_result.all()
-        }
-            
-
-    print("\nQUERY:", query)
-
-    for i, chunk in enumerate(context, start=1):
-        print(
-            f"\n[S{i}] "
-            f"chunk_id={chunk['chunk_id']} "
-            f"score={chunk['score']}"
-        )
-        print(chunk["text"][:500])
-
-    source_map = {
-    f"S{i + 1}": chunk
-    for i, chunk in enumerate(context)
-    }
-
+    # Load conversation history before deciding how
+    # the current message should be handled.
     result = await db.execute(
-            select(Message.role, Message.content)
-            .where(
-                Message.conversation_id == conversation_id
-            ).order_by(Message.id.desc())
-            .limit(10)
+        select(
+            Message.role,
+            Message.content,
+        )
+        .where(
+            Message.conversation_id == conversation_id
+        )
+        .order_by(Message.id.desc())
+        .limit(10)
     )
 
     history = result.mappings().all()
     history.reverse()
-    user_message = Message(
-            conversation_id= conversation_id,
-            role= "user",
-            content= query
-    )
 
+    user_message = Message(
+        conversation_id=conversation_id,
+        role="user",
+        content=query,
+    )
 
     db.add(user_message)
 
-    
-    if not context:
-        chat_response = ResearchResponse(
-            answer=(
-                "I don't have enough information in the provided context "
-                "to answer this question."
-            ),
-            citations=[],
-            grounded=False
+    # Keep these initialized even when no retrieval
+    # happens, so citation handling remains safe.
+    context = []
+    documents_by_id = {}
+
+    # ---------------------------------------------------------
+    # CASUAL CONVERSATION
+    # ---------------------------------------------------------
+
+    if is_casual_message(query):
+
+        chat_response = await get_chat_response(
+            query=query,
+            history=history,
+            context=[],
         )
+
+    # ---------------------------------------------------------
+    # RAG / RESEARCH QUESTION
+    # ---------------------------------------------------------
 
     else:
-        supported = await check_evidence(
-            query=query,
-            context=context
+
+        result = await db.scalars(
+            select(
+                ConversationDoc.document_id
+            )
+            .where(
+                ConversationDoc.conversation_id
+                == conversation_id
+            )
         )
 
-        if not supported:
+        document_ids = result.all()
+
+        context = await retrieve_documents(
+            query,
+            user_id,
+            document_ids,
+        )
+
+        if context:
+
+            context_document_ids = {
+                chunk["document_id"]
+                for chunk in context
+            }
+
+            document_result = await db.scalars(
+                select(Doc).where(
+                    Doc.id.in_(context_document_ids),
+                    Doc.owner_id == user_id,
+                )
+            )
+
+            documents_by_id = {
+                document.id: document
+                for document in document_result.all()
+            }
+
+        if not context:
+
             chat_response = ResearchResponse(
                 answer=(
-                    "I don't have enough information in the provided context "
-                    "to answer this question."
+                    "I don't have enough information in the "
+                    "provided context to answer this question."
                 ),
                 citations=[],
-                grounded=False
+                grounded=False,
             )
 
         else:
-            chat_response = await get_chat_response(
+
+            supported = await check_evidence(
                 query=query,
-                history=history,
-                context=context
+                context=context,
             )
-        
+
+            if not supported:
+
+                chat_response = ResearchResponse(
+                    answer=(
+                        "I don't have enough information in the "
+                        "provided context to answer this question."
+                    ),
+                    citations=[],
+                    grounded=False,
+                )
+
+            else:
+
+                chat_response = await get_chat_response(
+                    query=query,
+                    history=history,
+                    context=context,
+                )
+
+    # ---------------------------------------------------------
+    # RESOLVE CITATIONS
+    # ---------------------------------------------------------
+
+    source_map = {
+        f"S{i + 1}": chunk
+        for i, chunk in enumerate(context)
+    }
+
     citations = []
 
     for source_id in chat_response.citations:
+
         chunk = source_map.get(source_id)
 
         if chunk is None:
@@ -343,27 +431,38 @@ async def send_message(
             )
         )
 
-    assisstant_message = Message(
-                conversation_id= conversation_id,
-                role= "assistant",
-                content= chat_response.answer
-        )
-    
-    
-    db.add(assisstant_message)
+    # ---------------------------------------------------------
+    # SAVE ASSISTANT MESSAGE
+    # ---------------------------------------------------------
+
+    assistant_message = Message(
+        conversation_id=conversation_id,
+        role="assistant",
+        content=chat_response.answer,
+    )
+
+    db.add(assistant_message)
+
     await db.flush()
-    for citation_order, source_id in enumerate(chat_response.citations, start=1):
+
+    for citation_order, source_id in enumerate(
+        chat_response.citations,
+        start=1,
+    ):
+
         chunk = source_map.get(source_id)
 
         if chunk is None:
             continue
+
         message_citation = MessageCitation(
-            message_id = assisstant_message.id,
-            chunk_id = chunk["chunk_id"],
-            citation_order = citation_order,
+            message_id=assistant_message.id,
+            chunk_id=chunk["chunk_id"],
+            citation_order=citation_order,
         )
 
         db.add(message_citation)
+
     await db.commit()
 
     return ChatResponse(

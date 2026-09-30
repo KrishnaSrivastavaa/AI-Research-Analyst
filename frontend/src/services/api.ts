@@ -109,16 +109,18 @@ export async function getConversations(): Promise<Conversation[]> {
 export async function createConversation(
     title: string
 ): Promise<Conversation> {
-    const response = await fetch(
-        `${API_URL}/chat/conversations`,
-        {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify({
-                title,
-            }),
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/chat/conversations`,
+    {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            title,
+        }),
+    }
+);
 
     const data = await response.json();
 
@@ -135,13 +137,15 @@ export async function createConversation(
 export async function getMessages(
     conversationId: number
 ): Promise<Message[]> {
-    const response = await fetch(
-        `${API_URL}/chat/conversations/${conversationId}/messages`,
-        {
-            method: "GET",
-            headers: authHeaders(),
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/chat/conversations/${conversationId}/messages`,
+    {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+);
 
     const data = await response.json();
 
@@ -159,16 +163,18 @@ export async function sendMessage(
     conversationId: number,
     query: string
 ): Promise<ResearchResponse> {
-    const response = await fetch(
-        `${API_URL}/chat/conversations/${conversationId}/messages`,
-        {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify({
-                query,
-            }),
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/chat/conversations/${conversationId}/messages`,
+    {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query,
+        }),
+    }
+);
 
     const data = await response.json();
 
@@ -183,13 +189,15 @@ export async function sendMessage(
 
 
 export async function getDocuments(): Promise<Document[]> {
-    const response = await fetch(
-        `${API_URL}/doc/documents`,
-        {
-            method: "GET",
-            headers: authHeaders(),
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/doc/documents`,
+    {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+);
 
     const data = await response.json();
 
@@ -210,20 +218,14 @@ export async function uploadDocument(
 
     formData.append("file", file);
 
-    const token = getAccessToken();
 
-    const response = await fetch(
-        `${API_URL}/doc/documents`,
-        {
-            method: "POST",
-            headers: token
-                ? {
-                      Authorization: `Bearer ${token}`,
-                  }
-                : undefined,
-            body: formData,
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/doc/documents`,
+    {
+        method: "POST",
+        body: formData,
+    }
+);
 
     const data = await response.json();
 
@@ -239,13 +241,15 @@ export async function uploadDocument(
 export async function getConversationDocuments(
     conversationId: number
 ) {
-    const response = await fetch(
-        `${API_URL}/chat/conversations/${conversationId}/documents`,
-        {
-            method: "GET",
-            headers: authHeaders(),
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/chat/conversations/${conversationId}/documents`,
+    {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+);
 
     const data = await response.json();
 
@@ -263,16 +267,18 @@ export async function addDocumentToConversation(
     conversationId: number,
     documentId: number
 ) {
-    const response = await fetch(
-        `${API_URL}/chat/conversations/${conversationId}/documents`,
-        {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify({
-                document_id: documentId,
-            }),
-        }
-    );
+    const response = await authenticatedFetch(
+    `${API_URL}/chat/conversations/${conversationId}/documents`,
+    {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            document_id: documentId,
+        }),
+    }
+);
 
     const data = await response.json();
 
@@ -286,58 +292,81 @@ export async function addDocumentToConversation(
     return data;
 }
 
+let refreshPromise: Promise<string> | null = null;
+
 async function refreshAccessToken(): Promise<string> {
-    const refreshToken = localStorage.getItem("refresh_token");
-
-    if (!refreshToken) {
-        throw new Error("No refresh token available");
+    if (refreshPromise) {
+        return refreshPromise;
     }
 
-    const response = await fetch(
-        `${API_URL}/auth/refresh`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                refresh_token: refreshToken,
-            }),
+    refreshPromise = (async () => {
+        const refreshToken =
+            localStorage.getItem("refresh_token");
+
+        if (!refreshToken) {
+            throw new Error(
+                "No refresh token available"
+            );
         }
-    );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user_id");
-
-        throw new Error(
-            data.detail || "Session expired. Please sign in again."
+        const response = await fetch(
+            `${API_URL}/auth/refresh`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    refresh_token: refreshToken,
+                }),
+            }
         );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            localStorage.removeItem(
+                "access_token"
+            );
+            localStorage.removeItem(
+                "refresh_token"
+            );
+            localStorage.removeItem("user_id");
+
+            throw new Error(
+                data.detail ||
+                    "Session expired. Please sign in again."
+            );
+        }
+
+        localStorage.setItem(
+            "access_token",
+            data.access_token
+        );
+
+        localStorage.setItem(
+            "refresh_token",
+            data.refresh_token
+        );
+
+        return data.access_token;
+    })();
+
+    try {
+        return await refreshPromise;
+    } finally {
+        refreshPromise = null;
     }
-
-    localStorage.setItem(
-        "access_token",
-        data.access_token
-    );
-
-    localStorage.setItem(
-        "refresh_token",
-        data.refresh_token
-    );
-
-    return data.access_token;
 }
 
 async function authenticatedFetch(
     url: string,
     options: RequestInit = {}
 ): Promise<Response> {
+
     let token = getAccessToken();
 
-    let response = await fetch(url, {
+    const response = await fetch(url, {
         ...options,
         headers: {
             ...options.headers,
@@ -349,17 +378,13 @@ async function authenticatedFetch(
         return response;
     }
 
-    // Access token expired → refresh it
     token = await refreshAccessToken();
 
-    // Retry the original request with the new token
-    response = await fetch(url, {
+    return fetch(url, {
         ...options,
         headers: {
             ...options.headers,
             Authorization: `Bearer ${token}`,
         },
     });
-
-    return response;
 }

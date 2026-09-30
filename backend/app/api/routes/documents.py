@@ -105,9 +105,9 @@ async def upload_file(
         )
 
         db.add(ingestion_job)
-        await db.flush()
+        await db.commit()
 
-        chunks = await process_pdf(contents, doc.id, db)
+        chunks = await process_pdf(contents, doc.id)
 
         ingestion_job.total_chunks = len(chunks)
 
