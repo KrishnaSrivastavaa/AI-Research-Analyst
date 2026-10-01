@@ -44,31 +44,30 @@ export default function Research() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
+    async function loadInitialData() {
+      try {
+        setLoadingConversations(true);
+        setError("");
+
+        const conversationData = await getConversations();
+
+        setConversations(conversationData);
+
+        if (conversationData.length > 0) {
+          await selectConversation(conversationData[0]);
+        }
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load research workspace.",
+        );
+      } finally {
+        setLoadingConversations(false);
+      }
+    }
     loadInitialData();
   }, []);
-
-  async function loadInitialData() {
-    try {
-      setLoadingConversations(true);
-      setError("");
-
-      const conversationData = await getConversations();
-
-      setConversations(conversationData);
-
-      if (conversationData.length > 0) {
-        await selectConversation(conversationData[0]);
-      }
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to load research workspace.",
-      );
-    } finally {
-      setLoadingConversations(false);
-    }
-  }
 
   async function selectConversation(conversation: Conversation) {
     try {
@@ -256,9 +255,7 @@ export default function Research() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-white">
-                New Research
-              </h2>
+              <h2 className="text-lg font-semibold text-white">New Research</h2>
 
               <p className="mt-1 text-sm text-slate-500">
                 Give your research workspace a name.

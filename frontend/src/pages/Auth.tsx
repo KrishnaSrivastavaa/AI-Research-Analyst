@@ -38,7 +38,6 @@ export default function Auth() {
 
         setMode("signin");
 
-        // Clear signup-only fields
         setName("");
         setUsername("");
         setPassword("");
@@ -46,9 +45,7 @@ export default function Auth() {
         const data = await signin(email, password);
 
         localStorage.setItem("access_token", data.access_token);
-
         localStorage.setItem("refresh_token", data.refresh_token);
-
         localStorage.setItem("user_id", data.user_id);
 
         navigate("/research");
@@ -63,19 +60,23 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-gray-900 p-8 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-[#0D1220] px-4">
+      <div className="w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#111827] p-8 shadow-2xl shadow-black/20">
         {/* Header */}
 
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white">AI Research Analyst</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            AI Research Analyst
+          </h1>
 
-          <p className="mt-2 text-gray-400">Research your documents with AI</p>
+          <p className="mt-2 text-gray-400">
+            Research your documents with AI
+          </p>
         </div>
 
         {/* Auth mode selector */}
 
-        <div className="mb-6 flex rounded-lg bg-gray-800 p-1">
+        <div className="mb-6 flex rounded-lg bg-[#1B2438] p-1">
           <button
             type="button"
             onClick={() => {
@@ -83,10 +84,10 @@ export default function Auth() {
               setError("");
               setSuccess("");
             }}
-            className={`flex-1 rounded-md py-2 text-sm font-medium ${
+            className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
               mode === "signin"
-                ? "bg-white text-gray-900"
-                : "text-gray-400 hover:text-white"
+                ? "bg-gradient-to-r from-violet-600 to-violet-500 text-white shadow-lg shadow-violet-950/20"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             Sign In
@@ -99,10 +100,10 @@ export default function Auth() {
               setError("");
               setSuccess("");
             }}
-            className={`flex-1 rounded-md py-2 text-sm font-medium ${
+            className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
               mode === "signup"
-                ? "bg-white text-gray-900"
-                : "text-gray-400 hover:text-white"
+                ? "bg-gradient-to-r from-violet-600 to-violet-500 text-white shadow-lg shadow-violet-950/20"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             Sign Up
@@ -131,7 +132,7 @@ export default function Auth() {
                 required
                 autoComplete="name"
                 placeholder="Your name"
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
+                className="w-full rounded-lg border border-white/[0.08] bg-[#1B2438] px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
               />
             </div>
           )}
@@ -155,7 +156,7 @@ export default function Auth() {
                 required
                 autoComplete="username"
                 placeholder="Choose a username"
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
+                className="w-full rounded-lg border border-white/[0.08] bg-[#1B2438] px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
               />
             </div>
           )}
@@ -178,7 +179,7 @@ export default function Auth() {
               required
               autoComplete="email"
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
+              className="w-full rounded-lg border border-white/[0.08] bg-[#1B2438] px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
             />
           </div>
 
@@ -202,7 +203,7 @@ export default function Auth() {
                 mode === "signin" ? "current-password" : "new-password"
               }
               placeholder="••••••••"
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white outline-none transition focus:border-blue-500"
+              className="w-full rounded-lg border border-white/[0.08] bg-[#1B2438] px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
             />
           </div>
 
@@ -227,7 +228,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-violet-500 py-3 font-semibold text-white shadow-lg shadow-violet-950/20 transition hover:from-violet-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading
               ? "Please wait..."
@@ -252,7 +253,7 @@ export default function Auth() {
               setError("");
               setSuccess("");
             }}
-            className="font-medium text-blue-400 hover:text-blue-300"
+            className="font-medium text-cyan-400 transition hover:text-cyan-300"
           >
             {mode === "signin" ? "Create one" : "Sign in"}
           </button>
