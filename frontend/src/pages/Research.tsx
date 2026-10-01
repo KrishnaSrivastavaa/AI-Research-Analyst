@@ -40,6 +40,9 @@ export default function Research() {
 
   const [newChatTitle, setNewChatTitle] = useState("");
 
+  // Mobile sidebar state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   useEffect(() => {
     loadInitialData();
   }, []);
@@ -52,7 +55,6 @@ export default function Research() {
       const conversationData = await getConversations();
 
       setConversations(conversationData);
-
 
       if (conversationData.length > 0) {
         await selectConversation(conversationData[0]);
@@ -86,6 +88,9 @@ export default function Research() {
 
       // Documents attached to this conversation
       setDocuments(documentData);
+
+      // Close mobile sidebar after selecting a conversation
+      setMobileSidebarOpen(false);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to load conversation.",
@@ -99,6 +104,7 @@ export default function Research() {
     setNewChatTitle("");
     setError("");
     setShowNewChatModal(true);
+    setMobileSidebarOpen(false);
   }
 
   async function handleNewConversation() {
@@ -177,19 +183,52 @@ export default function Research() {
   }
 
   return (
-    <div className="flex h-screen bg-[#0D1220]">
-      <aside className="flex h-full w-72 shrink-0 flex-col">
-        {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#0D1220]">
+      {/* Desktop sidebar */}
+      <aside className="hidden h-full w-72 shrink-0 flex-col md:flex">
         <div className="min-h-0 flex-1">
           <Sidebar
             conversations={conversations}
             selectedConversationId={selectedConversation?.id ?? null}
             onSelectConversation={selectConversation}
             onNewConversation={openNewChatModal}
+            onLogout={handleLogout}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
           />
         </div>
 
-        {/* Documents */}
+        <DocumentPanel
+          documents={documents}
+          conversationId={selectedConversation?.id ?? null}
+          onDocumentsChange={setDocuments}
+        />
+      </aside>
+
+      {/* Mobile sidebar overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(85vw,20rem)] flex-col bg-[#0D1220] shadow-2xl transition-transform duration-200 md:hidden ${
+          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="min-h-0 flex-1">
+          <Sidebar
+            conversations={conversations}
+            selectedConversationId={selectedConversation?.id ?? null}
+            onSelectConversation={selectConversation}
+            onNewConversation={openNewChatModal}
+            onLogout={handleLogout}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+          />
+        </div>
+
         <DocumentPanel
           documents={documents}
           conversationId={selectedConversation?.id ?? null}
@@ -200,24 +239,26 @@ export default function Research() {
       <ChatWindow
         conversation={selectedConversation}
         messages={messages}
-        documents={documents}
         loadingMessages={loadingMessages || loadingConversations}
         onSendMessage={handleSendMessage}
         onLogout={handleLogout}
+        onOpenSidebar={() => setMobileSidebarOpen(true)}
       />
 
       {/* NEW CHAT MODAL */}
       {showNewChatModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
           onClick={() => setShowNewChatModal(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#111827] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#111827] p-5 shadow-2xl sm:p-6"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-white">New Research</h2>
+              <h2 className="text-lg font-semibold text-white">
+                New Research
+              </h2>
 
               <p className="mt-1 text-sm text-slate-500">
                 Give your research workspace a name.
@@ -252,7 +293,7 @@ export default function Research() {
               />
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex justify-end gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setShowNewChatModal(false)}
@@ -265,7 +306,7 @@ export default function Research() {
                 type="button"
                 onClick={handleNewConversation}
                 disabled={!newChatTitle.trim()}
-                className="rounded-lg bg-gradient-to-r from-violet-600 to-violet-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-900/20 transition hover:from-violet-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg bg-gradient-to-r from-violet-600 to-violet-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-900/20 transition hover:from-violet-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5"
               >
                 Create Research
               </button>
@@ -276,7 +317,7 @@ export default function Research() {
 
       {/* ERROR TOAST */}
       {error && (
-        <div className="fixed bottom-4 right-4 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-300 shadow-lg">
+        <div className="fixed bottom-4 left-4 right-4 z-[70] rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-300 shadow-lg sm:left-auto sm:right-4 sm:max-w-md">
           {error}
         </div>
       )}

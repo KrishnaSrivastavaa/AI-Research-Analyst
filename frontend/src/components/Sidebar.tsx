@@ -5,6 +5,8 @@ interface SidebarProps {
   selectedConversationId: number | null;
   onSelectConversation: (conversation: Conversation) => void;
   onNewConversation: () => void;
+  onLogout: () => void;
+  onCloseMobile: () => void;
 }
 
 export default function Sidebar({
@@ -12,24 +14,53 @@ export default function Sidebar({
   selectedConversationId,
   onSelectConversation,
   onNewConversation,
+  onLogout,
+  onCloseMobile,
 }: SidebarProps) {
   return (
-    <div className="flex h-full flex-col border-r border-white/[0.06]">
+    <div className="flex h-full min-h-0 flex-col border-r border-white/[0.06]">
       {/* Brand */}
 
-      <div className="border-b border-white/[0.06] p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 shadow-lg shadow-violet-950/30">
-            <span className="text-lg font-bold text-white">✦</span>
+      <div className="border-b border-white/[0.06] p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 shadow-lg shadow-violet-950/30">
+              <span className="text-lg font-bold text-white">✦</span>
+            </div>
+
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-semibold text-slate-100">
+                AI Research Analyst
+              </h1>
+
+              <p className="text-[11px] text-slate-500">
+                Research workspace
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h1 className="text-sm font-semibold text-slate-100">
-              AI Research Analyst
-            </h1>
-
-            <p className="text-[11px] text-slate-500">Research workspace</p>
-          </div>
+          {/* Mobile close button */}
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-white md:hidden"
+            aria-label="Close sidebar"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-5 w-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 6l12 12M18 6L6 18"
+              />
+            </svg>
+          </button>
         </div>
 
         <button
@@ -43,7 +74,7 @@ export default function Sidebar({
 
       {/* Conversations */}
 
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <div className="mb-3 px-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
           Conversations
         </div>
@@ -88,9 +119,39 @@ export default function Sidebar({
       {/* Bottom */}
 
       <div className="border-t border-white/[0.06] p-4">
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          Backend connected
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
+            Backend connected
+          </div>
+
+          {/* Logout only appears here on mobile */}
+          <button
+            type="button"
+            onClick={onLogout}
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-red-500/[0.06] hover:text-red-400 md:hidden"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-4 w-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M18 12H9m0 0 3-3m-3 3 3 3"
+              />
+            </svg>
+            Logout
+          </button>
         </div>
       </div>
     </div>

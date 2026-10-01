@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import type { Conversation, Document, Message } from "../types";
+import type { Conversation, Message } from "../types";
 
 import Citation from "./Citation";
 
 interface ChatWindowProps {
   conversation: Conversation | null;
   messages: Message[];
-  documents: Document[];
   loadingMessages: boolean;
   onSendMessage: (query: string) => Promise<void>;
   onLogout: () => void;
+  onOpenSidebar: () => void;
 }
 
 export default function ChatWindow({
@@ -18,6 +18,7 @@ export default function ChatWindow({
   loadingMessages,
   onSendMessage,
   onLogout,
+  onOpenSidebar,
 }: ChatWindowProps) {
   const [query, setQuery] = useState("");
   const [sending, setSending] = useState(false);
@@ -30,7 +31,7 @@ export default function ChatWindow({
     });
   }, [messages, sending]);
 
-  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmedQuery = query.trim();
@@ -51,7 +52,7 @@ export default function ChatWindow({
 
   if (!conversation) {
     return (
-      <main className="flex flex-1 items-center justify-center bg-[#0D1220]">
+      <main className="flex min-w-0 flex-1 items-center justify-center bg-[#0D1220] px-6">
         <div className="text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-500/20">
             <span className="text-2xl">✦</span>
@@ -73,26 +74,56 @@ export default function ChatWindow({
     <main className="flex min-w-0 flex-1 flex-col bg-[#0D1220]">
       {/* Header */}
 
-      <header className="flex items-center justify-between border-b border-white/[0.06] bg-[#0D1220]/95 px-6 py-4 backdrop-blur">
-        <div>
-          <h2 className="font-semibold tracking-tight text-slate-100">
-            {conversation.title}
-          </h2>
+      <header className="flex shrink-0 items-center justify-between border-b border-white/[0.06] bg-[#0D1220]/95 px-3 py-3 backdrop-blur sm:px-6 sm:py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            onClick={onOpenSidebar}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white md:hidden"
+            aria-label="Open sidebar"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-5 w-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
 
-          <p className="mt-0.5 text-xs text-slate-500">Research workspace</p>
+          <div className="min-w-0">
+            <h2 className="truncate text-sm font-semibold tracking-tight text-slate-100 sm:text-base">
+              {conversation.title}
+            </h2>
+
+            <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">
+              Research workspace
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-5">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
 
-            <span className="text-xs text-slate-500">Ready</span>
+            <span className="hidden text-xs text-slate-500 sm:inline">
+              Ready
+            </span>
           </div>
 
+          {/* Desktop logout */}
           <button
             type="button"
             onClick={onLogout}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 transition hover:bg-red-500/[0.06] hover:text-red-400"
+            className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 transition hover:bg-red-500/[0.06] hover:text-red-400 md:flex"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -120,7 +151,7 @@ export default function ChatWindow({
 
       {/* Messages */}
 
-      <div className="flex-1 overflow-y-auto px-6 py-8">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6 sm:py-8">
         {loadingMessages ? (
           <div className="flex h-full items-center justify-center">
             <div className="flex items-center gap-3 text-sm text-slate-500">
@@ -130,7 +161,7 @@ export default function ChatWindow({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
-            <div className="max-w-md text-center">
+            <div className="max-w-md px-4 text-center">
               <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/15 to-cyan-500/10 ring-1 ring-white/[0.06]">
                 <span className="text-xl text-violet-300">✦</span>
               </div>
@@ -146,7 +177,7 @@ export default function ChatWindow({
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-4xl space-y-7">
+          <div className="mx-auto max-w-4xl space-y-6 sm:space-y-7">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -159,8 +190,8 @@ export default function ChatWindow({
                 <div
                   className={
                     message.role === "user"
-                      ? "max-w-[75%] rounded-2xl rounded-br-md bg-gradient-to-br from-violet-600 to-violet-700 px-5 py-3.5 text-white shadow-lg shadow-violet-950/20"
-                      : "max-w-[78%] rounded-2xl rounded-bl-md border border-white/[0.06] bg-[#171E2E] px-5 py-4 text-slate-200 shadow-lg shadow-black/10"
+                      ? "max-w-[90%] rounded-2xl rounded-br-md bg-gradient-to-br from-violet-600 to-violet-700 px-4 py-3 text-white shadow-lg shadow-violet-950/20 sm:max-w-[75%] sm:px-5 sm:py-3.5"
+                      : "max-w-[92%] rounded-2xl rounded-bl-md border border-white/[0.06] bg-[#171E2E] px-4 py-3.5 text-slate-200 shadow-lg shadow-black/10 sm:max-w-[78%] sm:px-5 sm:py-4"
                   }
                 >
                   <div
@@ -173,7 +204,7 @@ export default function ChatWindow({
                     {message.role === "user" ? "You" : "Research Analyst"}
                   </div>
 
-                  <div className="whitespace-pre-wrap text-sm leading-7">
+                  <div className="whitespace-pre-wrap break-words text-sm leading-6 sm:leading-7">
                     {message.content}
                   </div>
 
@@ -203,7 +234,7 @@ export default function ChatWindow({
 
             {sending && (
               <div className="flex justify-start">
-                <div className="rounded-2xl rounded-bl-md border border-white/[0.06] bg-[#171E2E] px-5 py-4 shadow-lg shadow-black/10">
+                <div className="max-w-[92%] rounded-2xl rounded-bl-md border border-white/[0.06] bg-[#171E2E] px-4 py-3.5 shadow-lg shadow-black/10 sm:max-w-[78%] sm:px-5 sm:py-4">
                   <div className="mb-2 text-[11px] font-medium text-cyan-400">
                     Research Analyst
                   </div>
@@ -230,12 +261,12 @@ export default function ChatWindow({
 
       {/* Input */}
 
-      <div className="h-[96px] shrink-0 border-t border-white/[0.06] bg-[#0B0F1A] px-4 py-3">
+      <div className="shrink-0 border-t border-white/[0.06] bg-[#0B0F1A] px-3 py-3 sm:h-[96px] sm:px-4 sm:py-3">
         <form
           onSubmit={handleSubmit}
-          className="mx-auto flex max-w-4xl items-center gap-3"
+          className="mx-auto flex max-w-4xl items-center gap-2 sm:gap-3"
         >
-          <div className="relative flex-1">
+          <div className="relative min-w-0 flex-1">
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -245,14 +276,14 @@ export default function ChatWindow({
                   ? "Researching..."
                   : "Ask a question about your documents..."
               }
-              className="w-full rounded-xl border border-white/[0.08] bg-[#151B2A] px-4 py-3.5 pr-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#151B2A] px-3 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3.5"
             />
           </div>
 
           <button
             type="submit"
             disabled={sending || !query.trim()}
-            className="flex h-12 min-w-[82px] items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 px-5 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:from-violet-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-11 min-w-[68px] shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 px-4 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:from-violet-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:min-w-[82px] sm:px-5"
           >
             {sending ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -262,7 +293,7 @@ export default function ChatWindow({
           </button>
         </form>
 
-        <p className="mx-auto mt-1 max-w-4xl px-1 text-[11px] text-slate-600">
+        <p className="mx-auto mt-1 hidden max-w-4xl px-1 text-[11px] text-slate-600 sm:block">
           Answers are generated from your selected research documents.
         </p>
       </div>
